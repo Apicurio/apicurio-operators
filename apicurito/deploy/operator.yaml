@@ -16,7 +16,7 @@ spec:
       containers:
         - name: apicurito
           # Replace this with the built image name
-          image: lgarciaac/apicurito-operator
+          image: apicurio/apicurito-operator:v0.1
           command:
           - apicurito
           imagePullPolicy: Always
