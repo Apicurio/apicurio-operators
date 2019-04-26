@@ -1,20 +1,22 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: apicurito
+  name: apicurito-operator
 spec:
   replicas: 1
   selector:
     matchLabels:
-      name: apicurito
+      name: apicurito-operator
+      app: apicurito
   template:
     metadata:
       labels:
-        name: apicurito
+        name: apicurito-operator
+        app: apicurito
     spec:
       serviceAccountName: apicurito
       containers:
-        - name: apicurito
+        - name: apicurito-operator
           # Replace this with the built image name
           image: apicurio/apicurito-operator:v0.1
           command:
@@ -30,4 +32,4 @@ spec:
                 fieldRef:
                   fieldPath: metadata.name
             - name: OPERATOR_NAME
-              value: "apicurito"
+              value: "apicurito-operator"
