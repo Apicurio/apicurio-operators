@@ -6,4 +6,3 @@ spec:
   # Add fields here
   size: 3
   image: apicurio/apicurito-ui:latest
-  route: apicurito
