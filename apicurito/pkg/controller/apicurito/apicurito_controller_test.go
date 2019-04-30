@@ -2,20 +2,25 @@ package apicurito
 
 import (
 	"context"
+	"fmt"
 	"math/rand"
 	"reflect"
 	"strconv"
 	"testing"
 
 	apicuritosv1alpha1 "github.com/apicurio/apicurio-operators/apicurito/pkg/apis/apicur/v1alpha1"
+	"github.com/operator-framework/operator-sdk/pkg/restmapper"
 
+	routev1 "github.com/openshift/api/route/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes/scheme"
+	"sigs.k8s.io/controller-runtime/pkg/client/config"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
+	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	// 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 )
@@ -30,12 +35,14 @@ func TestApicuritoController(t *testing.T) {
 	// logf.SetLogger(logf.ZapLogger(true))
 
 	var (
-		name             = "apicurito-operator"
-		namespace        = "apicurito"
-		replicas   int32 = 3
-		replicasCh int32 = 1
-		image            = "apicurio/apicurito-ui:latest"
-		imageCh          = "apicurio/apicurito-ui:v0.1"
+		name              = "apicurito-operator"
+		namespace         = "apicurito"
+		replicas    int32 = 3
+		replicasCh  int32 = 1
+		image             = "apicurio/apicurito-ui:latest"
+		imageCh           = "apicurio/apicurito-ui:v0.1"
+		metricsHost       = "0.0.0.0"
+		metricsPort int32 = 8383
 	)
 
 	// An apicurito resource with metadata and spec.
@@ -48,6 +55,26 @@ func TestApicuritoController(t *testing.T) {
 			Size:  replicas,
 			Image: image,
 		},
+	}
+
+	// Get a config to talk to the apiserver
+	cfg, err := config.GetConfig()
+	if err != nil {
+		t.Fatalf("\t%s\tFailed to get config: (%v)", failed, err)
+	}
+
+	// Create a new Cmd to provide shared dependencies and start components
+	mgr, err := manager.New(cfg, manager.Options{
+		Namespace:          namespace,
+		MapperProvider:     restmapper.NewDynamicRESTMapper,
+		MetricsBindAddress: fmt.Sprintf("%s:%d", metricsHost, metricsPort),
+	})
+	if err != nil {
+		t.Fatalf("\t%s\tFailed to create new cmd to provide shared dependencies: (%v)", failed, err)
+	}
+
+	if err := routev1.AddToScheme(mgr.GetScheme()); err != nil {
+		t.Fatalf("\t%s\tFailed to add openshift route to scheme: (%v)", failed, err)
 	}
 
 	// Objects to track in the fake client.
@@ -85,11 +112,12 @@ func TestApicuritoController(t *testing.T) {
 		// Check the result of reconciliation to make sure it has the desired state.
 		if !res.Requeue {
 			t.Errorf("\t%s\tShould be able to requeue reconcile.", failed)
+		} else {
+			t.Logf("\t%s\tShould be able to requeue reconcile.", succeed)
 		}
-		t.Logf("\t%s\tShould be able to requeue reconcile.", succeed)
 	}
 
-	// Check if deployment has been created and has the correct size.
+	// Check if deployment has been created and is correct.
 	{
 		t.Logf("\tTest 1\tWhen the deployment is created the first time.")
 
@@ -103,15 +131,23 @@ func TestApicuritoController(t *testing.T) {
 		dsize := *dep.Spec.Replicas
 		if dsize != replicas {
 			t.Errorf("\t%s\tDeployment should have replica size of (%d) but got (%d).", failed, replicas, dsize)
+		} else {
+			t.Logf("\t%s\tDeployment should have replica size of (%d) and got (%d).", succeed, replicas, dsize)
 		}
-		t.Logf("\t%s\tDeployment should have replica size of (%d) and got (%d).", succeed, replicas, dsize)
 
 		di := dep.Spec.Template.Spec.Containers[0].Image
 		if di != image {
 			t.Errorf("\t%s\tDeployment should have image (%s) but got (%s).", failed, image, di)
+		} else {
+			t.Logf("\t%s\tDeployment should have image (%s) and got (%s).", succeed, image, di)
 		}
-		t.Logf("\t%s\tDeployment should have image (%s) and got (%s).", succeed, image, di)
 
+		ser := &corev1.Service{}
+		if err = cl.Get(context.TODO(), req.NamespacedName, ser); err != nil {
+			t.Errorf("\t%s\tShould be able to get service but got error: (%v)", failed, err)
+		} else {
+			t.Logf("\t%s\tShould be able to get service.", succeed)
+		}
 	}
 
 	// Check that Reconcile update the Apicurito node list with some fake pod names
@@ -144,8 +180,9 @@ func TestApicuritoController(t *testing.T) {
 		}
 		if res != (reconcile.Result{}) {
 			t.Errorf("\t%s\tReconcile should return an empty Result but got (%v)", failed, res)
+		} else {
+			t.Logf("\t%s\tReconcile should return an empty Result", succeed)
 		}
-		t.Logf("\t%s\tReconcile should return an empty Result", succeed)
 
 		// Get the updated apicurito object.
 		apicurito = &apicuritosv1alpha1.Apicurito{}
@@ -158,8 +195,9 @@ func TestApicuritoController(t *testing.T) {
 		nodes := apicurito.Status.Nodes
 		if !reflect.DeepEqual(podNames, nodes) {
 			t.Errorf("\t%s\tPod names should be the same, but they dont match, got (%v), want (%v)", failed, podNames, nodes)
+		} else {
+			t.Logf("\t%s\tPod names should be the same.", succeed)
 		}
-		t.Logf("\t%s\tPod names should be the same.", succeed)
 	}
 
 	// Change Apicurito after the Deployment exist and make sure deployment is
@@ -180,8 +218,9 @@ func TestApicuritoController(t *testing.T) {
 		}
 		if res != (reconcile.Result{Requeue: true}) {
 			t.Errorf("\t%s\tAfter changing the replica size in CR, Reconcile should requeue, but got (%v)", failed, res)
+		} else {
+			t.Logf("\t%s\tAfter changing the replica size in CR, Reconcile should requeue.", succeed)
 		}
-		t.Logf("\t%s\tAfter changing the replica size in CR, Reconcile should requeue.", succeed)
 
 		dep := &appsv1.Deployment{}
 		err = cl.Get(context.TODO(), req.NamespacedName, dep)
@@ -192,8 +231,9 @@ func TestApicuritoController(t *testing.T) {
 		dsize := *dep.Spec.Replicas
 		if dsize != replicasCh {
 			t.Errorf("\t%s\tAfter changing the replica size in CR, Deployment should change, want (%d) but got (%d).", failed, replicasCh, dsize)
+		} else {
+			t.Logf("\t%s\tAfter changing the replica size in CR, Deployment should change, want (%d) and got (%d).", succeed, replicasCh, dsize)
 		}
-		t.Logf("\t%s\tAfter changing the replica size in CR, Deployment should change, want (%d) and got (%d).", succeed, replicasCh, dsize)
 
 		// Change now the image and Deployment should reflect the changes
 		apicurito.Spec.Image = imageCh
@@ -209,8 +249,9 @@ func TestApicuritoController(t *testing.T) {
 		}
 		if res != (reconcile.Result{Requeue: true}) {
 			t.Errorf("\t%s\tAfter changing the image in CR, Reconcile should requeue, but got (%v)", failed, res)
+		} else {
+			t.Logf("\t%s\tAfter changing the image in CR, Reconcile should requeue.", succeed)
 		}
-		t.Logf("\t%s\tAfter changing the image in CR, Reconcile should requeue.", succeed)
 
 		dep = &appsv1.Deployment{}
 		err = cl.Get(context.TODO(), req.NamespacedName, dep)
@@ -221,8 +262,9 @@ func TestApicuritoController(t *testing.T) {
 		di := dep.Spec.Template.Spec.Containers[0].Image
 		if di != imageCh {
 			t.Errorf("\t%s\tAfter changing the image in CR, Deployment should change, want (%s) but got (%s).", failed, image, di)
+		} else {
+			t.Logf("\t%s\tAfter changing the image in CR, Deployment should change, want (%s) and got (%s).", succeed, imageCh, di)
 		}
-		t.Logf("\t%s\tAfter changing the image in CR, Deployment should change, want (%s) and got (%s).", succeed, imageCh, di)
 	}
 
 }

@@ -220,7 +220,7 @@ func ApicuritoCluster(t *testing.T) {
 	f := framework.Global
 
 	// wait for apicurito-operator to be ready
-	if err := e2eutil.WaitForDeployment(t, f.KubeClient, n, "apicurito", 1, retryInterval, timeout); err != nil {
+	if err := e2eutil.WaitForDeployment(t, f.KubeClient, n, "apicurito-operator", 1, retryInterval, timeout); err != nil {
 		t.Fatal(err)
 	}
 

@@ -4,5 +4,6 @@ metadata:
   name: apicurito-service
 spec:
   # Add fields here
-  size: 3
-  image: apicurio/apicurito-ui:latest
+  size: 1
+  image: lgarciaac/apicurito-ui:1.0.2
+  route: apicurito
