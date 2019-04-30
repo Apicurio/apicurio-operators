@@ -3,15 +3,18 @@ package apicurito
 import (
 	"context"
 	"reflect"
+	"time"
 
 	apicuritosv1alpha1 "github.com/apicurio/apicurio-operators/apicurito/pkg/apis/apicur/v1alpha1"
 
+	routev1 "github.com/openshift/api/route/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -134,6 +137,27 @@ func (r *ReconcileApicurito) Reconcile(request reconcile.Request) (reconcile.Res
 		return reconcile.Result{Requeue: true}, nil
 	} else if err != nil {
 		reqLogger.Error(err, "Failed to get Deployment.")
+		return reconcile.Result{}, err
+	}
+
+	// Check if route already exists, if not create a new one
+	rf := &routev1.Route{}
+	err = r.client.Get(context.TODO(), types.NamespacedName{Name: apicurito.Name, Namespace: apicurito.Namespace}, rf)
+	if err != nil && errors.IsNotFound(err) {
+		// Define new route
+		route := r.routeForApicurito(apicurito)
+		reqLogger.Info("Creating a new Route", "Route.Namespace", route.Namespace, "Route.Name", route.Name)
+		err = r.client.Create(context.TODO(), route)
+		if err != nil {
+			reqLogger.Error(err, "Failed to create new Route.", "Route.Namespace", route.Namespace, "Route.Name", route.Name)
+			return reconcile.Result{}, err
+		}
+
+		// Route takes some time to come up, let's give it 5s to come up
+		reqLogger.Info("Route created, waiting 5s")
+		time.Sleep(5 * time.Second)
+	} else if err != nil {
+		reqLogger.Error(err, "Failed to get Route.")
 		return reconcile.Result{}, err
 	}
 
@@ -289,6 +313,37 @@ func (r *ReconcileApicurito) serviceForApicurito(a *apicuritosv1alpha1.Apicurito
 	}
 
 	return service
+}
+
+func (r *ReconcileApicurito) routeForApicurito(a *apicuritosv1alpha1.Apicurito) *routev1.Route {
+	ls := labelsForApicurito(a.Name)
+	route := routev1.Route{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Route",
+			APIVersion: routev1.SchemeGroupVersion.String(),
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      a.Name,
+			Namespace: a.Namespace,
+			Labels:    ls,
+			OwnerReferences: []metav1.OwnerReference{
+				*metav1.NewControllerRef(a, schema.GroupVersionKind{
+					Group:   apicuritosv1alpha1.SchemeGroupVersion.Group,
+					Version: apicuritosv1alpha1.SchemeGroupVersion.Version,
+					Kind:    a.Kind,
+				}),
+			},
+		},
+		Spec: routev1.RouteSpec{
+			// Host: a.Spec.Route,
+			To: routev1.RouteTargetReference{
+				Kind: "Service",
+				Name: a.Name,
+			},
+		},
+	}
+
+	return &route
 }
 
 // getPodNames returns the pod names of the array of pods passed in
