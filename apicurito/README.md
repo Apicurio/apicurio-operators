@@ -32,7 +32,7 @@ apicurito-operator       1         1         1            1           1m
 ## Start an apicurito deployment
 Edit the example Apicurito CR at deploy/crds/apicur_v1alpha1_apicurito_cr.yaml:
 ```
-$ cat deploy/crds/apicur_v1alpha1_apicurito_cr.yaml:
+$ cat deploy/crds/apicur_v1alpha1_apicurito_cr.yaml
 apiVersion: apicur.io/v1alpha1
 kind: Apicurito
 metadata:
