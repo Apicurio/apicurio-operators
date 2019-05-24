@@ -1,15 +1,17 @@
 apiVersion: operators.coreos.com/v1alpha1
 kind: ClusterServiceVersion
 metadata:
-  name: apicurito.0.1.0
+  name: apicuritooperator.v0.1.0
   namespace: placeholder
   annotations:
-    categories: "Api"
+    capabilities: Seamless Upgrades
+    categories: "Integration & Delivery"
     certified: "false"
     createdAt: 2019-05-08T16:12:00Z
     containerImage: apicurio/apicurito-ui:1.0.1
     support: Luis Garcia Acosta
     description: Manages the installation and upgrades of apicurito, a small/minimal version of Apicurio
+    repository: https://github.com/Apicurio/apicurio-operators/tree/master/apicurito
     alm-examples: |-
       [{
         "apiVersion": "apicur.io/v1alpha1",
@@ -27,7 +29,7 @@ spec:
   description: A small/minimal version of Apicurio used for standalone editing of API designs.
   keywords: ['api', 'apicurio', 'apicurito']
   version: 0.1.0
-  maturity: beta
+  maturity: alpha
   maintainers:
   - name: Red Hat
     email: lgarciaa@redhat.com
@@ -109,7 +111,7 @@ spec:
           - routes
           verbs: [ get, list, create, update, watch ]
       deployments:
-      - name: camel-k-operator
+      - name: apicurito-operator
         spec:
           replicas: 1
           selector:
