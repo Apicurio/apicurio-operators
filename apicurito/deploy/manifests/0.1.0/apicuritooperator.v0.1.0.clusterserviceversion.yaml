@@ -178,3 +178,16 @@ spec:
       kind: Apicurito
       displayName: Apicurito CRD
       description: CRD for Apicurito
+      specDescriptors:
+        - description: The number of Apicurito pods to deploy
+          displayName: Size
+          path: size
+          x-descriptors:
+            - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:Deployment'
+            - 'urn:alm:descriptor:com.tectonic.ui:podCount'
+        - description: The image used for the Apicurito deployment
+          displayName: Image
+          path: image
+          x-descriptors:
+            - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:Deployment'
+            - 'urn:alm:descriptor:com.tectonic.ui:text'
