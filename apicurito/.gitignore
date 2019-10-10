@@ -75,3 +75,10 @@ tags
 .vscode/*
 .history
 # End of https://www.gitignore.io/api/go,vim,emacs,visualstudiocode
+# IntelliJ IDE files
+.idea
+.idea/*
+*.iml
+*.ipr
+*.iws
+
