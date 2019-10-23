@@ -234,37 +234,6 @@ func TestApicuritoController(t *testing.T) {
 		} else {
 			t.Logf("\t%s\tAfter changing the replica size in CR, Deployment should change, want (%d) and got (%d).", succeed, replicasCh, dsize)
 		}
-
-		// Change now the image and Deployment should reflect the changes
-		apicurito.Spec.Image = imageCh
-
-		err = cl.Update(context.TODO(), apicurito)
-		if err != nil {
-			t.Fatalf("\t%s\tShould be able to update Apicurito CR after changing CR: (%v)", failed, err)
-		}
-
-		res, err = r.Reconcile(req)
-		if err != nil {
-			t.Fatalf("\t%s\tShould be able to reconcile after changing CR but got error: (%v)", failed, err)
-		}
-		if res != (reconcile.Result{Requeue: true}) {
-			t.Errorf("\t%s\tAfter changing the image in CR, Reconcile should requeue, but got (%v)", failed, res)
-		} else {
-			t.Logf("\t%s\tAfter changing the image in CR, Reconcile should requeue.", succeed)
-		}
-
-		dep = &appsv1.Deployment{}
-		err = cl.Get(context.TODO(), req.NamespacedName, dep)
-		if err != nil {
-			t.Fatalf("\t%s\tShould be able to get deployment after changing CR but got error: (%v)", failed, err)
-		}
-
-		di := dep.Spec.Template.Spec.Containers[0].Image
-		if di != imageCh {
-			t.Errorf("\t%s\tAfter changing the image in CR, Deployment should change, want (%s) but got (%s).", failed, image, di)
-		} else {
-			t.Logf("\t%s\tAfter changing the image in CR, Deployment should change, want (%s) and got (%s).", succeed, imageCh, di)
-		}
 	}
 
 }
