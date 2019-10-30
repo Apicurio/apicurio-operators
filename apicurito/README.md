@@ -66,3 +66,21 @@ $ kubectl apply -f deploy/crds/apicur_v1alpha1_apicurito_cr.yaml
 ```
 
 The Reconciler will trigger a deployment once the CR is updated
+
+
+## Building the operator
+
+In the apicurito directory issue the following command: 
+
+```bash
+make
+```
+
+## Upload to a container registry
+
+e.g.
+
+```bash
+docker push quay.io/apicurito-operator/:<version>
+```
+

@@ -5,6 +5,8 @@ import (
 	"reflect"
 	"time"
 
+	"github.com/apicurio/apicurio-operators/apicurito/pkg/properties"
+
 	apicuritosv1alpha1 "github.com/apicurio/apicurio-operators/apicurito/pkg/apis/apicur/v1alpha1"
 
 	routev1 "github.com/openshift/api/route/v1"
@@ -126,7 +128,10 @@ func (r *ReconcileApicurito) Reconcile(request reconcile.Request) (reconcile.Res
 	err = r.client.Get(context.TODO(), types.NamespacedName{Name: apicurito.Name, Namespace: apicurito.Namespace}, fd)
 	if err != nil && errors.IsNotFound(err) {
 		// Define a new deployment
-		dep := r.deploymentForApicurito(apicurito)
+		dep, err := r.deploymentForApicurito(apicurito)
+		if err != nil {
+			return reconcile.Result{}, err
+		}
 		reqLogger.Info("Creating a new Deployment.", "Deployment.Namespace", dep.Namespace, "Deployment.Name", dep.Name)
 		err = r.client.Create(context.TODO(), dep)
 		if err != nil {
@@ -159,18 +164,6 @@ func (r *ReconcileApicurito) Reconcile(request reconcile.Request) (reconcile.Res
 	} else if err != nil {
 		reqLogger.Error(err, "Failed to get Route.")
 		return reconcile.Result{}, err
-	}
-
-	// Ensure the deployment image is the same as the spec
-	image := apicurito.Spec.Image
-	if fd.Spec.Template.Spec.Containers[0].Image != image {
-		fd.Spec.Template.Spec.Containers[0].Image = image
-		err = r.client.Update(context.TODO(), fd)
-		if err != nil {
-			reqLogger.Error(err, "Failed to update Deployment.", "Deployment.Namespace", fd.Namespace, "Deployment.Name", fd.Name)
-			return reconcile.Result{}, err
-		}
-		return reconcile.Result{Requeue: true}, nil
 	}
 
 	// Ensure the deployment size are the same as the spec
@@ -217,7 +210,12 @@ func (r *ReconcileApicurito) Reconcile(request reconcile.Request) (reconcile.Res
 }
 
 // deploymentForApicurito returns a apicurito Deployment object
-func (r *ReconcileApicurito) deploymentForApicurito(m *apicuritosv1alpha1.Apicurito) *appsv1.Deployment {
+func (r *ReconcileApicurito) deploymentForApicurito(m *apicuritosv1alpha1.Apicurito) (*appsv1.Deployment, error) {
+	p, err := properties.GetProperties()
+	if err != nil {
+		return nil, err
+	}
+
 	ls := labelsForApicurito(m.Name)
 	replicas := m.Spec.Size
 
@@ -241,7 +239,7 @@ func (r *ReconcileApicurito) deploymentForApicurito(m *apicuritosv1alpha1.Apicur
 				},
 				Spec: corev1.PodSpec{
 					Containers: []corev1.Container{{
-						Image:           getImage(m),
+						Image:           p.Image,
 						ImagePullPolicy: corev1.PullIfNotPresent,
 						Name:            "apicurito",
 						Ports: []corev1.ContainerPort{{
@@ -273,11 +271,11 @@ func (r *ReconcileApicurito) deploymentForApicurito(m *apicuritosv1alpha1.Apicur
 	}
 
 	// Set Apicurito instance as the owner and controller
-	err := controllerutil.SetControllerReference(m, dep, r.scheme)
+	err = controllerutil.SetControllerReference(m, dep, r.scheme)
 	if err != nil {
-		// TODO: Handle error
+		return nil, err
 	}
-	return dep
+	return dep, nil
 }
 
 // labelsForApicurito returns the labels for selecting the resources
@@ -353,14 +351,4 @@ func getPodNames(pods []corev1.Pod) []string {
 		podNames = append(podNames, pod.Name)
 	}
 	return podNames
-}
-
-// getImage returns the apicurito docker image from Spec if defined in CR, or
-// it's default value
-func getImage(a *apicuritosv1alpha1.Apicurito) string {
-	if a.Spec.Image != "" {
-		return a.Spec.Image
-	}
-
-	return "apicurio/apicurito-ui:latest"
 }
