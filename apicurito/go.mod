@@ -20,8 +20,9 @@ require (
 	github.com/googleapis/gnostic v0.0.0-20180519185700-7c663266750e // indirect
 	github.com/gophercloud/gophercloud v0.0.0-20190423165001-666dacaccf07 // indirect
 	github.com/gregjones/httpcache v0.0.0-20190212212710-3befbb6ad0cc // indirect
-	github.com/imdario/mergo v0.0.0-20190123232827-7c29201646fa // indirect
+	github.com/imdario/mergo v0.0.0-20190123232827-7c29201646fa
 	github.com/inconshreveable/mousetrap v0.0.0-20141017200713-76626ae9c91c // indirect
+	github.com/jinzhu/copier v0.0.0-20190924061706-b57f9002281a
 	github.com/json-iterator/go v0.0.0-20190306142909-0ff49de124c6 // indirect
 	github.com/mailru/easyjson v0.0.0-20190403194419-1ea4449da983 // indirect
 	github.com/markbates/inflect v0.0.0-20181024203500-24b83195037b // indirect
