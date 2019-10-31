@@ -93,8 +93,8 @@ func loadFromApicurito(apicurito *v1alpha1.Apicurito) (*Properties, error) {
 	return p, nil
 }
 
-// Merge two Property objectsand owerwrite config values with apicurito values
-// if the fields in apicurito arent set to its 0 value.
+// Merge two Property objects and overwrite config values with apicurito values
+// if the fields in apicurito aren't set to its 0 value.
 func mergeProperties(config Properties, apicurito Properties) (*Properties, error) {
 	err := mergo.Merge(&config, apicurito, mergo.WithOverride)
 	if err != nil {
