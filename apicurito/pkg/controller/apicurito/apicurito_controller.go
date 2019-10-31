@@ -5,9 +5,9 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/apicurio/apicurio-operators/apicurito/pkg/properties"
+	"github.com/apicurio/apicurio-operators/apicurito/pkg/apis/apicur/v1alpha1"
 
-	apicuritosv1alpha1 "github.com/apicurio/apicurio-operators/apicurito/pkg/apis/apicur/v1alpha1"
+	"github.com/apicurio/apicurio-operators/apicurito/pkg/properties"
 
 	routev1 "github.com/openshift/api/route/v1"
 	appsv1 "k8s.io/api/apps/v1"
@@ -56,7 +56,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	}
 
 	// Watch for changes to primary resource Apicurito
-	err = c.Watch(&source.Kind{Type: &apicuritosv1alpha1.Apicurito{}}, &handler.EnqueueRequestForObject{})
+	err = c.Watch(&source.Kind{Type: &v1alpha1.Apicurito{}}, &handler.EnqueueRequestForObject{})
 	if err != nil {
 		return err
 	}
@@ -65,7 +65,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	// Watch for changes to secondary resource Pods and requeue the owner Apicurito
 	err = c.Watch(&source.Kind{Type: &appsv1.Deployment{}}, &handler.EnqueueRequestForOwner{
 		IsController: true,
-		OwnerType:    &apicuritosv1alpha1.Apicurito{},
+		OwnerType:    &v1alpha1.Apicurito{},
 	})
 	if err != nil {
 		return err
@@ -94,7 +94,7 @@ func (r *ReconcileApicurito) Reconcile(request reconcile.Request) (reconcile.Res
 	reqLogger.Info("Reconciling Apicurito.")
 
 	// Fetch the Apicurito instance
-	apicurito := &apicuritosv1alpha1.Apicurito{}
+	apicurito := &v1alpha1.Apicurito{}
 	err := r.client.Get(context.TODO(), request.NamespacedName, apicurito)
 	if err != nil {
 		if errors.IsNotFound(err) {
@@ -210,8 +210,8 @@ func (r *ReconcileApicurito) Reconcile(request reconcile.Request) (reconcile.Res
 }
 
 // deploymentForApicurito returns a apicurito Deployment object
-func (r *ReconcileApicurito) deploymentForApicurito(m *apicuritosv1alpha1.Apicurito) (*appsv1.Deployment, error) {
-	p, err := properties.GetProperties()
+func (r *ReconcileApicurito) deploymentForApicurito(m *v1alpha1.Apicurito) (*appsv1.Deployment, error) {
+	p, err := properties.GetProperties(m)
 	if err != nil {
 		return nil, err
 	}
@@ -285,7 +285,7 @@ func labelsForApicurito(name string) map[string]string {
 }
 
 // serviceForApicurito returns an apicurito Service
-func (r *ReconcileApicurito) serviceForApicurito(a *apicuritosv1alpha1.Apicurito) *corev1.Service {
+func (r *ReconcileApicurito) serviceForApicurito(a *v1alpha1.Apicurito) *corev1.Service {
 	ls := labelsForApicurito(a.Name)
 
 	service := &corev1.Service{
@@ -313,7 +313,7 @@ func (r *ReconcileApicurito) serviceForApicurito(a *apicuritosv1alpha1.Apicurito
 	return service
 }
 
-func (r *ReconcileApicurito) routeForApicurito(a *apicuritosv1alpha1.Apicurito) *routev1.Route {
+func (r *ReconcileApicurito) routeForApicurito(a *v1alpha1.Apicurito) *routev1.Route {
 	ls := labelsForApicurito(a.Name)
 	route := routev1.Route{
 		TypeMeta: metav1.TypeMeta{
@@ -326,8 +326,8 @@ func (r *ReconcileApicurito) routeForApicurito(a *apicuritosv1alpha1.Apicurito) 
 			Labels:    ls,
 			OwnerReferences: []metav1.OwnerReference{
 				*metav1.NewControllerRef(a, schema.GroupVersionKind{
-					Group:   apicuritosv1alpha1.SchemeGroupVersion.Group,
-					Version: apicuritosv1alpha1.SchemeGroupVersion.Version,
+					Group:   v1alpha1.SchemeGroupVersion.Group,
+					Version: v1alpha1.SchemeGroupVersion.Version,
 					Kind:    a.Kind,
 				}),
 			},
