@@ -166,6 +166,22 @@ func (r *ReconcileApicurito) Reconcile(request reconcile.Request) (reconcile.Res
 		return reconcile.Result{}, err
 	}
 
+	// Ensure the deployment image is the same as the one from properties
+	p, err := properties.GetProperties(apicurito)
+	if err != nil {
+		return reconcile.Result{}, err
+	}
+	image := p.Image
+	if fd.Spec.Template.Spec.Containers[0].Image != image {
+		fd.Spec.Template.Spec.Containers[0].Image = image
+		err = r.client.Update(context.TODO(), fd)
+		if err != nil {
+			reqLogger.Error(err, "Failed to update Deployment.", "Deployment.Namespace", fd.Namespace, "Deployment.Name", fd.Name)
+			return reconcile.Result{}, err
+		}
+		return reconcile.Result{Requeue: true}, nil
+	}
+
 	// Ensure the deployment size are the same as the spec
 	size := apicurito.Spec.Size
 	if *fd.Spec.Replicas != size {

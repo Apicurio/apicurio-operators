@@ -50,23 +50,9 @@ NAME                     DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
 apicurito-operator       1         1         1            1           2m
 apicurito-service        3         3         3            3           1m
 ```
+
 # Upgrade apicurito
-In order to upgrade apicurito, you need to edit the Apicurito CR changing the image to the newer version and apply the changes:
-```
-$ cat deploy/crds/apicur_v1alpha1_apicurito_cr.yaml
-apiVersion: apicur.io/v1alpha1
-kind: Apicurito
-metadata:
-  name: apicurito-service
-spec:
-  size: 3
-  image: apicurio/apicurito-ui:updated
-
-$ kubectl apply -f deploy/crds/apicur_v1alpha1_apicurito_cr.yaml
-```
-
-The Reconciler will trigger a deployment once the CR is updated
-
+In order to upgrade apicurito, you need to install the desired version of the operator. Once the newer version is installed, an upgrade of the operand will kick in.
 
 ## Building the operator
 
