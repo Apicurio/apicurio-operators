@@ -8,6 +8,8 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/apicurio/apicurio-operators/apicurito/pkg/configuration"
+
 	apicuritosv1alpha1 "github.com/apicurio/apicurio-operators/apicurito/pkg/apis/apicur/v1alpha1"
 	"github.com/operator-framework/operator-sdk/pkg/restmapper"
 
@@ -22,7 +24,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	// 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
+	// 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 )
 
 const succeed = "\u2713"
@@ -40,7 +42,6 @@ func TestApicuritoController(t *testing.T) {
 		replicas    int32 = 3
 		replicasCh  int32 = 1
 		image             = "apicurio/apicurito-ui:latest"
-		imageCh           = "apicurio/apicurito-ui:v0.1"
 		metricsHost       = "0.0.0.0"
 		metricsPort int32 = 8383
 	)
@@ -87,7 +88,7 @@ func TestApicuritoController(t *testing.T) {
 	s.AddKnownTypes(apicuritosv1alpha1.SchemeGroupVersion, apicurito)
 
 	// Create a fake client to mock API calls.
-	cl := fake.NewFakeClient(objs...)
+	cl := fake.NewFakeClientWithScheme(s, objs...)
 
 	// Create a ReconcileApicurito object with the scheme and fake client.
 	r := &ReconcileApicurito{client: cl, scheme: s}
@@ -100,6 +101,8 @@ func TestApicuritoController(t *testing.T) {
 			Namespace: namespace,
 		},
 	}
+
+	configuration.ConfigFile = "../../../build/conf/config_test.yaml"
 
 	{
 		t.Logf("\tTest 0\tWhen simulating reconcile the first time.")
