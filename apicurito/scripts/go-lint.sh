@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 dirs=(cmd pkg version)
 for dir in "${dirs[@]}"

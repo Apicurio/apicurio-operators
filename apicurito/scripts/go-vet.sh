@@ -1,7 +1,7 @@
-#!/bin/sh
+#!/bin/bash
 
 if [[ -z ${CI} ]]; then
-    ./scripts/go-dep.sh
     operator-sdk generate k8s
+    operator-sdk generate openapi
 fi
 go vet ./...

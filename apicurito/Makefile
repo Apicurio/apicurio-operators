@@ -17,10 +17,6 @@ endif
 .PHONY: all
 all: build
 
-.PHONY: dep
-dep:
-	./scripts/go-dep.sh
-
 .PHONY: format
 format:
 	./scripts/go-fmt.sh
