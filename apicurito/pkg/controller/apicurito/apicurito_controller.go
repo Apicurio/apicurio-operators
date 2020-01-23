@@ -1,3 +1,19 @@
+/*
+ * Copyright (C) 2020 Red Hat, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package apicurito
 
 import (
@@ -7,7 +23,7 @@ import (
 
 	"github.com/apicurio/apicurio-operators/apicurito/pkg/apis/apicur/v1alpha1"
 
-	"github.com/apicurio/apicurio-operators/apicurito/pkg/properties"
+	"github.com/apicurio/apicurio-operators/apicurito/pkg/configuration"
 
 	routev1 "github.com/openshift/api/route/v1"
 	appsv1 "k8s.io/api/apps/v1"
@@ -166,12 +182,12 @@ func (r *ReconcileApicurito) Reconcile(request reconcile.Request) (reconcile.Res
 		return reconcile.Result{}, err
 	}
 
-	// Ensure the deployment image is the same as the one from properties
-	p, err := properties.GetProperties(apicurito)
-	if err != nil {
+	// Ensure the deployment image is the same as the one from configuration
+	c := &configuration.Config{}
+	if err = c.Config(apicurito); err != nil {
 		return reconcile.Result{}, err
 	}
-	image := p.Image
+	image := c.Image
 	if fd.Spec.Template.Spec.Containers[0].Image != image {
 		fd.Spec.Template.Spec.Containers[0].Image = image
 		err = r.client.Update(context.TODO(), fd)
@@ -227,8 +243,8 @@ func (r *ReconcileApicurito) Reconcile(request reconcile.Request) (reconcile.Res
 
 // deploymentForApicurito returns a apicurito Deployment object
 func (r *ReconcileApicurito) deploymentForApicurito(m *v1alpha1.Apicurito) (*appsv1.Deployment, error) {
-	p, err := properties.GetProperties(m)
-	if err != nil {
+	c := &configuration.Config{}
+	if err := c.Config(m); err != nil {
 		return nil, err
 	}
 
@@ -255,7 +271,7 @@ func (r *ReconcileApicurito) deploymentForApicurito(m *v1alpha1.Apicurito) (*app
 				},
 				Spec: corev1.PodSpec{
 					Containers: []corev1.Container{{
-						Image:           p.Image,
+						Image:           c.Image,
 						ImagePullPolicy: corev1.PullIfNotPresent,
 						Name:            "apicurito",
 						Ports: []corev1.ContainerPort{{
@@ -287,10 +303,10 @@ func (r *ReconcileApicurito) deploymentForApicurito(m *v1alpha1.Apicurito) (*app
 	}
 
 	// Set Apicurito instance as the owner and controller
-	err = controllerutil.SetControllerReference(m, dep, r.scheme)
-	if err != nil {
+	if err := controllerutil.SetControllerReference(m, dep, r.scheme); err != nil {
 		return nil, err
 	}
+
 	return dep, nil
 }
 
