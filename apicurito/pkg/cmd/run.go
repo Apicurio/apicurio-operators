@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 Red Hat, Inc.
+ * Copyright (C) 2020 Red Hat, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,10 +21,20 @@ import (
 	"fmt"
 	"runtime"
 
+	kubemetrics "github.com/operator-framework/operator-sdk/pkg/kube-metrics"
+
+	"k8s.io/apimachinery/pkg/runtime/schema"
+
+	"github.com/apicurio/apicurio-operators/apicurito/version"
+	customMetrics "sigs.k8s.io/controller-runtime/pkg/metrics"
+
+	"github.com/prometheus/client_golang/prometheus"
+
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 
 	"github.com/apicurio/apicurio-operators/apicurito/pkg/apis"
+	"github.com/apicurio/apicurio-operators/apicurito/pkg/apis/apicur/v1alpha1"
 	"github.com/apicurio/apicurio-operators/apicurito/pkg/configuration"
 	"github.com/apicurio/apicurio-operators/apicurito/pkg/controller"
 	routev1 "github.com/openshift/api/route/v1"
@@ -66,13 +76,27 @@ var (
 	metricsHost               = "0.0.0.0"
 	metricsPort         int32 = 8383
 	operatorMetricsPort int32 = 8686
+	operatorVersion           = prometheus.NewGauge(
+		prometheus.GaugeOpts{
+			Name:        "apicurito_version_info",
+			Help:        "Apicurito operator information",
+			ConstLabels: prometheus.Labels{"operator_version": version.Version},
+		},
+	)
 )
+
 var log = logf.Log.WithName("cmd")
+
+func init() {
+	// Register custom metrics with the global prometheus registry
+	customMetrics.Registry.MustRegister(operatorVersion)
+}
 
 func printVersion() {
 	log.Info(fmt.Sprintf("Go Version: %s", runtime.Version()))
 	log.Info(fmt.Sprintf("Go OS/Arch: %s/%s", runtime.GOOS, runtime.GOARCH))
 	log.Info(fmt.Sprintf("Version of operator-sdk: %v", sdkVersion.Version))
+	log.Info(fmt.Sprintf("Version of apicurito operator: %v", version.Version))
 }
 
 func (o *options) run() error {
@@ -136,15 +160,39 @@ func (o *options) run() error {
 		exitOnError(err)
 	}
 
+	// Setup metrics. Serves Operator/CustomResource GVKs and generates metrics based on those types
+	installationGVK := []schema.GroupVersionKind{v1alpha1.SchemaGroupVersionKind}
+
+	// To generate metrics in other namespaces, add the values below.
+	ns := []string{namespace}
+
+	// Generate and serve custom resource specific metrics.
+	err = kubemetrics.GenerateAndServeCRMetrics(cfg, ns, installationGVK, metricsHost, operatorMetricsPort)
+	if err != nil {
+		return err
+	}
+
 	// Create Service object to expose the metrics port.
 	servicePorts := []v1.ServicePort{
 		{Port: metricsPort, Name: metrics.OperatorPortName, Protocol: v1.ProtocolTCP, TargetPort: intstr.IntOrString{Type: intstr.Int, IntVal: metricsPort}},
 		{Port: operatorMetricsPort, Name: metrics.CRPortName, Protocol: v1.ProtocolTCP, TargetPort: intstr.IntOrString{Type: intstr.Int, IntVal: operatorMetricsPort}},
 	}
 
-	_, err = metrics.CreateMetricsService(ctx, cfg, servicePorts)
+	service, err := metrics.CreateMetricsService(ctx, cfg, servicePorts)
 	if err != nil {
 		log.Info(err.Error())
+		log.Info("Could not create metrics Service", "error", err.Error())
+	}
+
+	services := []*v1.Service{service}
+	_, err = metrics.CreateServiceMonitors(cfg, namespace, services)
+	if err != nil {
+		log.Info("Could not create ServiceMonitor object", "error", err.Error())
+		// If this operator is deployed to a cluster without the prometheus-operator running, it will return
+		// ErrServiceMonitorNotPresent, which can be used to safely skip ServiceMonitor creation.
+		if err == metrics.ErrServiceMonitorNotPresent {
+			log.Info("Install prometheus-operator in your cluster to create ServiceMonitor objects", "error", err.Error())
+		}
 	}
 
 	log.Info("Starting the Cmd.")

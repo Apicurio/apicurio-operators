@@ -6,7 +6,8 @@ require (
 	github.com/go-openapi/spec v0.19.4
 	github.com/imdario/mergo v0.3.8
 	github.com/openshift/api v3.9.1-0.20190924102528-32369d4db2ad+incompatible
-	github.com/operator-framework/operator-sdk v0.14.0
+	github.com/operator-framework/operator-sdk v0.15.0
+	github.com/prometheus/client_golang v1.2.1
 	github.com/spf13/cobra v0.0.5
 	github.com/stretchr/testify v1.4.0
 	k8s.io/api v0.17.0
