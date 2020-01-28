@@ -1,3 +1,19 @@
+/*
+ * Copyright (C) 2020 Red Hat, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package apicurito
 
 import (
@@ -7,6 +23,8 @@ import (
 	"reflect"
 	"strconv"
 	"testing"
+
+	"github.com/apicurio/apicurio-operators/apicurito/pkg/configuration"
 
 	apicuritosv1alpha1 "github.com/apicurio/apicurio-operators/apicurito/pkg/apis/apicur/v1alpha1"
 	"github.com/operator-framework/operator-sdk/pkg/restmapper"
@@ -22,7 +40,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	// 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
+	// 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 )
 
 const succeed = "\u2713"
@@ -39,8 +57,7 @@ func TestApicuritoController(t *testing.T) {
 		namespace         = "apicurito"
 		replicas    int32 = 3
 		replicasCh  int32 = 1
-		image             = "apicurio/apicurito-ui:latest"
-		imageCh           = "apicurio/apicurito-ui:v0.1"
+		image             = "apicurio/apicurito-ui"
 		metricsHost       = "0.0.0.0"
 		metricsPort int32 = 8383
 	)
@@ -52,8 +69,7 @@ func TestApicuritoController(t *testing.T) {
 			Namespace: namespace,
 		},
 		Spec: apicuritosv1alpha1.ApicuritoSpec{
-			Size:  replicas,
-			Image: image,
+			Size: replicas,
 		},
 	}
 
@@ -87,7 +103,7 @@ func TestApicuritoController(t *testing.T) {
 	s.AddKnownTypes(apicuritosv1alpha1.SchemeGroupVersion, apicurito)
 
 	// Create a fake client to mock API calls.
-	cl := fake.NewFakeClient(objs...)
+	cl := fake.NewFakeClientWithScheme(s, objs...)
 
 	// Create a ReconcileApicurito object with the scheme and fake client.
 	r := &ReconcileApicurito{client: cl, scheme: s}
@@ -100,6 +116,8 @@ func TestApicuritoController(t *testing.T) {
 			Namespace: namespace,
 		},
 	}
+
+	configuration.ConfigFile = "../../../build/conf/config_test.yaml"
 
 	{
 		t.Logf("\tTest 0\tWhen simulating reconcile the first time.")
@@ -235,5 +253,4 @@ func TestApicuritoController(t *testing.T) {
 			t.Logf("\t%s\tAfter changing the replica size in CR, Deployment should change, want (%d) and got (%d).", succeed, replicasCh, dsize)
 		}
 	}
-
 }

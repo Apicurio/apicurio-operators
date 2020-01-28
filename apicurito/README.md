@@ -39,7 +39,6 @@ metadata:
   name: apicurito-service
 spec:
   size: 3
-  image: apicurio/apicurito-ui:latest
 
 $ kubectl apply -f deploy/crds/apicur_v1alpha1_apicurito_cr.yaml
 ```
@@ -50,6 +49,9 @@ NAME                     DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
 apicurito-operator       1         1         1            1           2m
 apicurito-service        3         3         3            3           1m
 ```
+
+# Upgrade apicurito
+In order to upgrade apicurito, you need to install the desired version of the operator. Once the newer version is installed, an upgrade of the operand will kick in.
 
 # Upgrade apicurito
 In order to upgrade apicurito, you need to install the desired version of the operator. Once the newer version is installed, an upgrade of the operand will kick in.
