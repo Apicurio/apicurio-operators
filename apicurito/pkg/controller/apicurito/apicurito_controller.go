@@ -60,7 +60,13 @@ func Add(mgr manager.Manager) error {
 
 // newReconciler returns a new reconcile.Reconciler
 func newReconciler(mgr manager.Manager) reconcile.Reconciler {
-	return &ReconcileApicurito{client: mgr.GetClient(), scheme: mgr.GetScheme()}
+	v := &ReconcileApicurito{client: mgr.GetClient(), scheme: mgr.GetScheme()}
+	if err := ConsoleYAMLSampleExists(); err == nil {
+		createConsoleYAMLSamples(v.client)
+	} else {
+		log.Info("Yaml Samples", "Console YAML sample is not added:", err)
+	}
+	return v
 }
 
 // add adds a new Controller to mgr with r as the reconcile.Reconciler
