@@ -89,6 +89,19 @@ spec:
   install:
     strategy: deployment
     spec:
+      clusterPermissions:
+      - rules:
+          - apiGroups:
+              - console.openshift.io
+            resources:
+              - consolelinks
+              - consoleyamlsamples
+            verbs:
+              - get
+              - create
+              - update
+              - delete
+        serviceAccountName: apicurito
       permissions:
       - serviceAccountName: apicurito
         rules:
