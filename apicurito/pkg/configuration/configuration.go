@@ -102,3 +102,27 @@ func (c *Config) setPropertiesFromEnv() (err error) {
 	err = mergo.Merge(c, cEnv, mergo.WithOverride)
 	return
 }
+
+//GetImage
+func GetImage(imageURL string) (image, imageTag, imageContext string) {
+	urlParts := strings.Split(imageURL, "/")
+	if len(urlParts) > 1 {
+		imageContext = urlParts[len(urlParts)-2]
+	}
+	imageAndTag := urlParts[len(urlParts)-1]
+	imageParts := strings.Split(imageAndTag, ":")
+	image = imageParts[0]
+	if len(imageParts) > 1 {
+		imageTag = imageParts[len(imageParts)-1]
+	}
+	return image, imageTag, imageContext
+}
+
+// MajorMinorMicro ...
+func MajorMinorMicro(productVersion string) (major, minor, micro string) {
+	version := strings.Split(productVersion, ".")
+	for len(version) < 3 {
+		version = append(version, "0")
+	}
+	return version[0], version[1], version[2]
+}
