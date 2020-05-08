@@ -1,4 +1,4 @@
-name: Master build
+name: Apicurio-registry operator master build
 on:
   push:
     branches:

@@ -3,6 +3,8 @@ require "${VERSION}" "Could not read project version."
 OPERATOR_IMAGE_NAME="${IMAGE_REGISTRY}/${IMAGE_REGISTRY_ORG}/apicurio-registry-operator"
 OPERATOR_IMAGE="${OPERATOR_IMAGE_NAME}:${VERSION}"
 
+cd apicurio-registry
+
 operator-sdk generate k8s
 operator-sdk generate openapi
 operator-sdk build "${OPERATOR_IMAGE}"
