@@ -4,11 +4,13 @@ go 1.13
 
 require (
 	bitbucket.org/ww/goautoneg v0.0.0-20120707110453-75cd24fc2f2c // indirect
+	github.com/RHsyseng/operator-utils v0.0.0-20200506183821-e3b4a2ba9c30
 	github.com/blang/semver v3.5.1+incompatible
-	github.com/coreos/prometheus-operator v0.34.0
+	github.com/coreos/prometheus-operator v0.35.1
 	github.com/emicklei/go-restful-swagger12 v0.0.0-20170926063155-7524189396c6 // indirect
 	github.com/ghodss/yaml v1.0.1-0.20190212211648-25d852aebe32
-	github.com/go-openapi/spec v0.19.4
+	github.com/go-openapi/spec v0.19.6
+	github.com/gobuffalo/packr/v2 v2.7.1
 	github.com/heroku/docker-registry-client v0.0.0-20190909225348-afc9e1acc3d5
 	github.com/imdario/mergo v0.3.8
 	github.com/maxbrunsfeld/counterfeiter v0.0.0-20181017030959-1aadac120687 // indirect
@@ -24,9 +26,9 @@ require (
 	github.com/stretchr/testify v1.4.0
 	github.com/tidwall/gjson v1.6.0 // indirect
 	github.com/tidwall/sjson v1.0.4
-	k8s.io/api v0.17.0
+	k8s.io/api v0.17.2
 	k8s.io/apiextensions-apiserver v0.17.0 // indirect
-	k8s.io/apimachinery v0.17.0
+	k8s.io/apimachinery v0.17.2
 	k8s.io/client-go v12.0.0+incompatible
 	k8s.io/kube-openapi v0.0.0-20191107075043-30be4d16710a
 	sigs.k8s.io/controller-runtime v0.4.0
@@ -64,3 +66,7 @@ replace (
 	github.com/prometheus/prometheus => github.com/prometheus/prometheus v0.0.0-20190424153033-d3245f150225
 	k8s.io/helm => k8s.io/helm v2.16.1+incompatible
 )
+
+replace github.com/openshift/api => github.com/openshift/api v0.0.0-20200205145930-e9d93e317dd1
+
+replace github.com/openshift/client-go => github.com/openshift/client-go v0.0.0-20191125132246-f6563a70e19a

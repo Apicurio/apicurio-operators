@@ -11,9 +11,9 @@ import (
 
 func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenAPIDefinition {
 	return map[string]common.OpenAPIDefinition{
-		"github.com/apicurio/apicurio-operators/apicurito/pkg/apis/apicur/v1alpha1.Apicurito":       schema_pkg_apis_apicur_v1alpha1_Apicurito(ref),
-		"github.com/apicurio/apicurio-operators/apicurito/pkg/apis/apicur/v1alpha1.ApicuritoSpec":   schema_pkg_apis_apicur_v1alpha1_ApicuritoSpec(ref),
-		"github.com/apicurio/apicurio-operators/apicurito/pkg/apis/apicur/v1alpha1.ApicuritoStatus": schema_pkg_apis_apicur_v1alpha1_ApicuritoStatus(ref),
+		"./pkg/apis/apicur/v1alpha1.Apicurito":       schema_pkg_apis_apicur_v1alpha1_Apicurito(ref),
+		"./pkg/apis/apicur/v1alpha1.ApicuritoSpec":   schema_pkg_apis_apicur_v1alpha1_ApicuritoSpec(ref),
+		"./pkg/apis/apicur/v1alpha1.ApicuritoStatus": schema_pkg_apis_apicur_v1alpha1_ApicuritoStatus(ref),
 	}
 }
 
@@ -22,6 +22,7 @@ func schema_pkg_apis_apicur_v1alpha1_Apicurito(ref common.ReferenceCallback) com
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
 				Description: "Apicurito is the Schema for the apicuritos API",
+				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"kind": {
 						SchemaProps: spec.SchemaProps{
@@ -44,19 +45,19 @@ func schema_pkg_apis_apicur_v1alpha1_Apicurito(ref common.ReferenceCallback) com
 					},
 					"spec": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/apicurio/apicurio-operators/apicurito/pkg/apis/apicur/v1alpha1.ApicuritoSpec"),
+							Ref: ref("./pkg/apis/apicur/v1alpha1.ApicuritoSpec"),
 						},
 					},
 					"status": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/apicurio/apicurio-operators/apicurito/pkg/apis/apicur/v1alpha1.ApicuritoStatus"),
+							Ref: ref("./pkg/apis/apicur/v1alpha1.ApicuritoStatus"),
 						},
 					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"github.com/apicurio/apicurio-operators/apicurito/pkg/apis/apicur/v1alpha1.ApicuritoSpec", "github.com/apicurio/apicurio-operators/apicurito/pkg/apis/apicur/v1alpha1.ApicuritoStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
+			"./pkg/apis/apicur/v1alpha1.ApicuritoSpec", "./pkg/apis/apicur/v1alpha1.ApicuritoStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
 	}
 }
 
@@ -65,6 +66,7 @@ func schema_pkg_apis_apicur_v1alpha1_ApicuritoSpec(ref common.ReferenceCallback)
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
 				Description: "ApicuritoSpec defines the desired state of Apicurito",
+				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"size": {
 						SchemaProps: spec.SchemaProps{
@@ -77,7 +79,6 @@ func schema_pkg_apis_apicur_v1alpha1_ApicuritoSpec(ref common.ReferenceCallback)
 				Required: []string{"size"},
 			},
 		},
-		Dependencies: []string{},
 	}
 }
 
@@ -86,6 +87,7 @@ func schema_pkg_apis_apicur_v1alpha1_ApicuritoStatus(ref common.ReferenceCallbac
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
 				Description: "ApicuritoStatus defines the observed state of Apicurito",
+				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"nodes": {
 						VendorExtensible: spec.VendorExtensible{
@@ -110,6 +112,5 @@ func schema_pkg_apis_apicur_v1alpha1_ApicuritoStatus(ref common.ReferenceCallbac
 				Required: []string{"nodes"},
 			},
 		},
-		Dependencies: []string{},
 	}
 }

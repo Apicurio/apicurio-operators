@@ -111,6 +111,18 @@ spec:
                 name: apicurito-operator
                 resources: {}
               serviceAccountName: apicurito-operator
+      clusterPermissions:
+        - rules:
+            - apiGroups:
+                - console.openshift.io
+              resources:
+                - consoleyamlsamples
+              verbs:
+                - get
+                - create
+                - update
+                - delete
+          serviceAccountName: apicurito-operator
       permissions:
       - rules:
         - apiGroups:
