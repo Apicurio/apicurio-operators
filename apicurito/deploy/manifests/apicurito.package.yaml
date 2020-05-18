@@ -1,4 +1,8 @@
-packageName: apicurito
+#! package-manifest: deploy/manifests/0.2.0/apicuritooperator.v0.2.0.clusterserviceversion.yaml
 channels:
-- name: alpha
-  currentCSV: apicuritooperator.v0.1.0
+- currentCSV: apicuritooperator.v0.1.0
+  name: alpha
+- currentCSV: apicuritooperator.v0.2.0
+  name: alpha-offline
+defaultChannel: alpha
+packageName: apicurito

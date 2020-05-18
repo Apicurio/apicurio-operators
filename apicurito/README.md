@@ -69,3 +69,12 @@ e.g.
 docker push quay.io/apicurito-operator/:<version>
 ```
 
+
+## CSV Generation
+
+```bash
+make csv
+
+# OR
+# w/ sha lookup/replacement against registry.redhat.io
+DIGESTS=true REDHATIO_TOKEN="<username>:<password>"  make csv

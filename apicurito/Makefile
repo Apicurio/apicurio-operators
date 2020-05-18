@@ -52,5 +52,6 @@ build:
 clean:
 	rm -rf build/_output
 
-
-
+.PHONY: csv
+csv:
+	./scripts/go-csv.sh
