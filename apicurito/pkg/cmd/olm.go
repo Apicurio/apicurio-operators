@@ -19,6 +19,8 @@ package cmd
 import (
 	"flag"
 
+	"github.com/apicurio/apicurio-operators/apicurito/pkg/configuration"
+
 	"github.com/apicurio/apicurio-operators/apicurito/tools/run"
 	"github.com/operator-framework/operator-sdk/pkg/log/zap"
 	"github.com/spf13/cobra"
@@ -38,6 +40,7 @@ func newOlmCommand(parent *Options) *cobra.Command {
 		},
 	}
 
+	cmd.PersistentFlags().StringVarP(&configuration.ConfigFile, "config", "", "/conf/config.yaml", "path to the operator configuration file.")
 	cmd.PersistentFlags().AddFlagSet(zap.FlagSet())
 	cmd.PersistentFlags().AddGoFlagSet(flag.CommandLine)
 
@@ -45,6 +48,5 @@ func newOlmCommand(parent *Options) *cobra.Command {
 }
 
 func (c csv) run() error {
-	run.Run()
-	return nil
+	return run.Run()
 }

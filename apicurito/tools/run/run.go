@@ -51,7 +51,11 @@ var (
 	}
 )
 
-func Run() {
+func Run() error {
+	c := &config.Config{}
+	if err := c.Config(nil); err != nil {
+		return err
+	}
 
 	imageShaMap := map[string]string{}
 
@@ -64,7 +68,8 @@ func Run() {
 	json.Unmarshal(csvStruct.Spec.InstallStrategy.StrategySpecRaw, strategySpec)
 
 	templateStrategySpec := &csvStrategySpec{}
-	deployment := components.GetDeployment(csv.OperatorName, csv.Registry, csv.Context, csv.ImageName, csv.Tag, "Always")
+
+	deployment := components.GetDeployment(csv.OperatorName, csv.Registry, csv.Context, csv.ImageName, csv.Tag, "Always", c.Image)
 	templateStrategySpec.Deployments = append(templateStrategySpec.Deployments, []csvDeployments{{Name: csv.OperatorName, Spec: deployment.Spec}}...)
 	role := components.GetRole(csv.OperatorName)
 	templateStrategySpec.Permissions = append(templateStrategySpec.Permissions, []csvPermissions{{ServiceAccountName: deployment.Spec.Template.Spec.ServiceAccountName, Rules: role.Rules}}...)
@@ -312,8 +317,7 @@ func Run() {
 	p, err := os.Create(packageFile)
 	defer p.Close()
 	if err != nil {
-		fmt.Println(err)
-		return
+		return err
 	}
 	pwr := bufio.NewWriter(p)
 	pwr.WriteString("#! package-manifest: " + csvFile + "\n")
@@ -333,6 +337,8 @@ func Run() {
 	}
 	util.MarshallObject(packagedata, pwr)
 	pwr.Flush()
+
+	return nil
 }
 
 func RetriveFromRedHatIO(image string, imageTag string) ([]string, error) {
