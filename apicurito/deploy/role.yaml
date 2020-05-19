@@ -1,7 +1,6 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  creationTimestamp: null
   name: apicurito
 rules:
 - apiGroups:
@@ -47,7 +46,12 @@ rules:
   verbs:
   - '*'
 - apiGroups:
-  - route.openshift.io
+    - route.openshift.io
   resources:
-  - routes
-  verbs: [ get, list, create, update, watch ]
+    - routes
+  verbs:
+    - get
+    - list
+    - create
+    - update
+    - watch

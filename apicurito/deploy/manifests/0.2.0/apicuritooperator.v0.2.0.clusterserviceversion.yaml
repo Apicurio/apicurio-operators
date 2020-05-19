@@ -17,8 +17,8 @@ metadata:
     capabilities: Seamless Upgrades
     categories: Integration & Delivery
     certified: "false"
-    containerImage: registry.redhat.io/fuse7-tech-preview/fuse-apicurito-operator@sha256:774527bfca019d86eec9c84f8b78f472ca46c953c1d1d55b6d9dac751452d19f
-    createdAt: "2020-04-01 10:31:09"
+    containerImage: registry.redhat.io/fuse7-tech-preview/fuse-apicurito-operator:1.6
+    createdAt: "2020-05-19 11:50:20"
     description: Manages the installation and upgrades of apicurito, a small/minimal
       version of Apicurio
     repository: https://github.com/Apicurio/apicurio-operators/tree/master/apicurito
@@ -106,23 +106,11 @@ spec:
                       fieldPath: metadata.name
                 - name: OPERATOR_NAME
                   value: apicurito-operator
-                image: registry.redhat.io/fuse7-tech-preview/fuse-apicurito-operator@sha256:774527bfca019d86eec9c84f8b78f472ca46c953c1d1d55b6d9dac751452d19f
+                image: registry.redhat.io/fuse7-tech-preview/fuse-apicurito-operator:1.6
                 imagePullPolicy: Always
                 name: apicurito-operator
                 resources: {}
-              serviceAccountName: apicurito-operator
-      clusterPermissions:
-        - rules:
-            - apiGroups:
-                - console.openshift.io
-              resources:
-                - consoleyamlsamples
-              verbs:
-                - get
-                - create
-                - update
-                - delete
-          serviceAccountName: apicurito-operator
+              serviceAccountName: apicurito
       permissions:
       - rules:
         - apiGroups:
@@ -177,7 +165,7 @@ spec:
           - create
           - update
           - watch
-        serviceAccountName: apicurito-operator
+        serviceAccountName: apicurito
     strategy: deployment
   installModes:
   - supported: true
@@ -206,10 +194,10 @@ spec:
   provider:
     name: Red Hat
   relatedImages:
-  - image: registry.redhat.io/fuse7-tech-preview/fuse-apicurito-operator@sha256:774527bfca019d86eec9c84f8b78f472ca46c953c1d1d55b6d9dac751452d19f
-    name: fuse-apicurito-operator
-  - image: registry.redhat.io/fuse7/fuse-apicurito@sha256:1177f9ee841f95f40ea0b0de76f28c3a7b01ebef5ab335674f24bb5c17f88431
-    name: fuse-apicurito
+    - image: registry.redhat.io/fuse7-tech-preview/fuse-apicurito-operator:1.6
+      name: fuse-apicurito-operator
+    - image: registry.redhat.io/fuse7/fuse-apicurito:1.6
+      name: fuse-apicurito
   replaces: apicuritooperator.v0.1.0
   selector:
     matchLabels:
