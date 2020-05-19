@@ -1,13 +1,14 @@
-package main
+package run
 
 import (
 	"bufio"
 	"bytes"
 	"fmt"
+	"net/http"
+
 	api "github.com/apicurio/apicurio-operators/apicurito/pkg/apis/apicur/v1alpha1"
 	config "github.com/apicurio/apicurio-operators/apicurito/pkg/configuration"
 	"github.com/heroku/docker-registry-client/registry"
-	"net/http"
 
 	"github.com/apicurio/apicurio-operators/apicurito/tools/components"
 	"github.com/apicurio/apicurio-operators/apicurito/tools/constants"
@@ -50,7 +51,7 @@ var (
 	}
 )
 
-func main() {
+func Run() {
 
 	imageShaMap := map[string]string{}
 

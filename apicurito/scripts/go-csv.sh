@@ -2,4 +2,4 @@
 
 
 
-go run ./tools/csv-gen/csv-gen.go
+go run ./tools/csv-gen/main.go

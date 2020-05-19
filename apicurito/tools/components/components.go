@@ -1,12 +1,13 @@
 package components
 
 import (
+	"strings"
+
 	monv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"strings"
 )
 
 func GetDeployment(operatorName, repository, context, imageName, tag, imagePullPolicy string) *appsv1.Deployment {
@@ -36,7 +37,7 @@ func GetDeployment(operatorName, repository, context, imageName, tag, imagePullP
 					},
 				},
 				Spec: corev1.PodSpec{
-					ServiceAccountName: operatorName,
+					ServiceAccountName: "apicurito",
 					Containers: []corev1.Container{
 						{
 							Name:            operatorName,
@@ -84,7 +85,7 @@ func GetRole(operatorName string) *rbacv1.Role {
 			Kind:       "Role",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name: operatorName,
+			Name: "apicurito",
 		},
 		Rules: []rbacv1.PolicyRule{
 			{

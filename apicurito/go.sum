@@ -791,6 +791,7 @@ github.com/operator-framework/operator-lifecycle-manager v0.0.0-20190125151539-1
 github.com/operator-framework/operator-lifecycle-manager v0.0.0-20190605231540-b8a4faf68e36/go.mod h1:HKV3ZB9aOUxRyfM53shoBRtIMP4lg8QRmkW+dmZy+kI=
 github.com/operator-framework/operator-lifecycle-manager v0.0.0-20191115003340-16619cd27fa5 h1:rjaihxY50c5C+kbQIK4s36R8zxByATYrgRbua4eiG6o=
 github.com/operator-framework/operator-lifecycle-manager v0.0.0-20191115003340-16619cd27fa5/go.mod h1:zL34MNy92LPutBH5gQK+gGhtgTUlZZX03I2G12vWHF4=
+github.com/operator-framework/operator-lifecycle-manager v3.11.0+incompatible h1:Po8C8RVLRWq7pNQ5pKonM9CXpC/osoBWbmsuf+HJnSI=
 github.com/operator-framework/operator-marketplace v0.0.0-20190216021216-57300a3ef3ba/go.mod h1:msZSL8pXwzQjB+hU+awVrZQw94IwJi3sNZVD3NoESIs=
 github.com/operator-framework/operator-registry v1.0.1/go.mod h1:1xEdZjjUg2hPEd52LG3YQ0jtwiwEGdm98S1TH5P4RAA=
 github.com/operator-framework/operator-registry v1.0.4/go.mod h1:hve6YwcjM2nGVlscLtNsp9sIIBkNZo6jlJgzWw7vP9s=

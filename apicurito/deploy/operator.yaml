@@ -6,20 +6,17 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      name: apicurito-operator
       app: apicurito
+      name: apicurito-operator
+  strategy: {}
   template:
     metadata:
       labels:
-        name: apicurito-operator
         app: apicurito
+        name: apicurito-operator
     spec:
-      serviceAccountName: apicurito
       containers:
-        - name: apicurito-operator
-          image: apicurio/apicurito-operator:v0.1
-          imagePullPolicy: Always
-          env:
+        - env:
             - name: WATCH_NAMESPACE
               valueFrom:
                 fieldRef:
@@ -29,4 +26,9 @@ spec:
                 fieldRef:
                   fieldPath: metadata.name
             - name: OPERATOR_NAME
-              value: "apicurito-operator"
+              value: apicurito-operator
+          image: registry.redhat.io/fuse7-tech-preview/fuse-apicurito-operator:1.6
+          imagePullPolicy: Always
+          name: apicurito-operator
+          resources: {}
+      serviceAccountName: apicurito
