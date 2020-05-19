@@ -46,12 +46,12 @@ rules:
   verbs:
   - '*'
 - apiGroups:
-    - route.openshift.io
+  - route.openshift.io
   resources:
-    - routes
+  - routes
   verbs:
-    - get
-    - list
-    - create
-    - update
-    - watch
+  - get
+  - list
+  - create
+  - update
+  - watch

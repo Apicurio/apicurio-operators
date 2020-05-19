@@ -10,7 +10,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func GetDeployment(operatorName, repository, context, imageName, tag, imagePullPolicy string) *appsv1.Deployment {
+func GetDeployment(operatorName, repository, context, imageName, tag, imagePullPolicy string, related string) *appsv1.Deployment {
 	registryName := strings.Join([]string{repository, context, imageName}, "/")
 	image := strings.Join([]string{registryName, tag}, ":")
 	deployment := &appsv1.Deployment{
@@ -54,7 +54,14 @@ func GetDeployment(operatorName, repository, context, imageName, tag, imagePullP
 										},
 									},
 								},
-
+								{
+									Name:  "RELATED_IMAGE_APICURITO_OPERATOR",
+									Value: image,
+								},
+								{
+									Name:  "RELATED_IMAGE_APICURITO",
+									Value: related,
+								},
 								{
 									Name: "POD_NAME",
 									ValueFrom: &corev1.EnvVarSource{

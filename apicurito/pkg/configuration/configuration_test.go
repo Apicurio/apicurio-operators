@@ -70,14 +70,14 @@ func TestConfig_setPropertiesFromEnv(t *testing.T) {
 		{
 			name:       "When env is provided it should replace the existing image",
 			fields:     fields{Image: "someimage"},
-			env:        map[string]string{"APICURITO_IMAGE": "image_from_env"},
+			env:        map[string]string{"RELATED_IMAGE_APICURITO": "image_from_env"},
 			wantConfig: &Config{Image: "image_from_env"},
 			wantErr:    false,
 		},
 		{
 			name:       "When env is provided and no images is set, env should prevail",
 			fields:     fields{},
-			env:        map[string]string{"APICURITO_IMAGE": "image_from_env"},
+			env:        map[string]string{"RELATED_IMAGE_APICURITO": "image_from_env"},
 			wantConfig: &Config{Image: "image_from_env"},
 			wantErr:    false,
 		},
