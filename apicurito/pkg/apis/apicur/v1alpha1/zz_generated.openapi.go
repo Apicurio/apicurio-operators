@@ -106,28 +106,6 @@ func schema_pkg_apis_apicur_v1alpha1_ApicuritoStatus(ref common.ReferenceCallbac
 			SchemaProps: spec.SchemaProps{
 				Description: "ApicuritoStatus defines the observed state of Apicurito",
 				Type:        []string{"object"},
-				Properties: map[string]spec.Schema{
-					"nodes": {
-						VendorExtensible: spec.VendorExtensible{
-							Extensions: spec.Extensions{
-								"x-kubernetes-list-type": "set",
-							},
-						},
-						SchemaProps: spec.SchemaProps{
-							Description: "Nodes are the names of the apicurito pods",
-							Type:        []string{"array"},
-							Items: &spec.SchemaOrArray{
-								Schema: &spec.Schema{
-									SchemaProps: spec.SchemaProps{
-										Type:   []string{"string"},
-										Format: "",
-									},
-								},
-							},
-						},
-					},
-				},
-				Required: []string{"nodes"},
 			},
 		},
 	}

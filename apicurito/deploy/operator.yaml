@@ -25,6 +25,8 @@ spec:
           value: registry.redhat.io/fuse7-tech-preview/fuse-apicurito-operator:1.6
         - name: RELATED_IMAGE_APICURITO
           value: apicurio/apicurito-ui:latest
+        - name: RELATED_IMAGE_GENERATOR
+          value: apicurio/fuse-apicurito-generator:latest
         - name: POD_NAME
           valueFrom:
             fieldRef:

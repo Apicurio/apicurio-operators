@@ -31,7 +31,8 @@ import (
 var ConfigFile string
 
 type Config struct {
-	Image string
+	UiImage        string
+	GeneratorImage string
 }
 
 type ConfigLoader interface {
@@ -100,7 +101,10 @@ func (c *Config) setPropertiesFromApi(apicurito *v1alpha1.Apicurito) (err error)
 // Set fields in the configuration from environment variables if they
 // are defined
 func (c *Config) setPropertiesFromEnv() (err error) {
-	cEnv := Config{Image: os.Getenv("RELATED_IMAGE_APICURITO")}
+	cEnv := Config{
+		UiImage:        os.Getenv("RELATED_IMAGE_APICURITO"),
+		GeneratorImage: os.Getenv("RELATED_IMAGE_GENERATOR"),
+	}
 
 	err = mergo.Merge(c, cEnv, mergo.WithOverride)
 	return
