@@ -7,5 +7,8 @@ if [[ -z ${CI} ]]; then
     else
         echo "skipping go openapi generation"
     fi
+
+    operator-sdk generate k8s
+    operator-sdk generate crds
 fi
 go vet ./...

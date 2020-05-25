@@ -9,6 +9,7 @@ require (
 	github.com/coreos/prometheus-operator v0.35.1
 	github.com/emicklei/go-restful-swagger12 v0.0.0-20170926063155-7524189396c6 // indirect
 	github.com/ghodss/yaml v1.0.1-0.20190212211648-25d852aebe32
+	github.com/go-logr/logr v0.1.0
 	github.com/go-openapi/spec v0.19.6
 	github.com/gobuffalo/packr/v2 v2.7.1
 	github.com/heroku/docker-registry-client v0.0.0-20190909225348-afc9e1acc3d5
