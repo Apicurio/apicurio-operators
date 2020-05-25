@@ -20,6 +20,8 @@ import (
 	"context"
 	"fmt"
 
+	routev1 "github.com/openshift/api/route/v1"
+
 	"k8s.io/apimachinery/pkg/api/errors"
 
 	"k8s.io/apimachinery/pkg/types"
@@ -36,6 +38,18 @@ func apicuritoConfig(client client.Client, a *v1alpha1.Apicurito) (c *corev1.Con
 		ObjectMeta: metav1.ObjectMeta{
 			Name: fmt.Sprintf("%s-%s", a.Name, "ui"),
 		},
+	}
+
+	// Fetch the route host from generator
+	r := &routev1.Route{}
+	if err = client.Get(context.TODO(), types.NamespacedName{
+		Name:      fmt.Sprintf("%s-%s", a.Name, "generator"),
+		Namespace: a.Namespace}, r); err != nil {
+		return c, err
+	}
+
+	if r.Spec.Host == "" {
+		return c, fmt.Errorf("unable to fetch Host from route %s", r.Name)
 	}
 
 	err = client.Get(context.TODO(), types.NamespacedName{Name: fmt.Sprintf("%s-%s", a.Name, "ui"), Namespace: a.Namespace}, c)
@@ -58,7 +72,7 @@ func apicuritoConfig(client client.Client, a *v1alpha1.Apicurito) (c *corev1.Con
 				},
 			},
 			Data: map[string]string{
-				"config.js": "var ApicuritoConfig = { \"generators\": [ { \"name\":\"Fuse Camel Project\", \"url\":\"/api/v1/generate/camel-project.zip\" } ] }",
+				"config.js": fmt.Sprintf("var ApicuritoConfig = { \"generators\": [ { \"name\":\"Fuse Camel Project\", \"url\":\"https://%s/api/v1/generate/camel-project.zip\" } ] }", r.Spec.Host),
 			},
 		}
 

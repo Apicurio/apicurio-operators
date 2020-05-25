@@ -32,22 +32,7 @@ type Resource struct {
 }
 
 func (r Resource) Create() error {
-	if c, err := apicuritoConfig(r.Client, r.Apicurito); err != nil {
-		r.Logger.Error(err, "error creating resource %s", c.Name)
-		return err
-	}
-
-	if c, err := apicuritoService(r.Client, r.Apicurito); err != nil {
-		r.Logger.Error(err, "error creating resource %s", c.Name)
-		return err
-	}
-
-	if c, err := apicuritoDeployment(r.Client, r.Cfg, r.Apicurito); err != nil {
-		r.Logger.Error(err, "error creating resource %s", c.Name)
-		return err
-	}
-
-	if c, err := apicuritoRoute(r.Client, r.Apicurito); err != nil {
+	if c, err := generatorRoute(r.Client, r.Apicurito); err != nil {
 		r.Logger.Error(err, "error creating resource %s", c.Name)
 		return err
 	}
@@ -62,7 +47,22 @@ func (r Resource) Create() error {
 		return err
 	}
 
-	if c, err := generatorRoute(r.Client, r.Apicurito); err != nil {
+	if c, err := apicuritoRoute(r.Client, r.Apicurito); err != nil {
+		r.Logger.Error(err, "error creating resource %s", c.Name)
+		return err
+	}
+
+	if c, err := apicuritoConfig(r.Client, r.Apicurito); err != nil {
+		r.Logger.Error(err, "error creating resource %s", c.Name)
+		return err
+	}
+
+	if c, err := apicuritoService(r.Client, r.Apicurito); err != nil {
+		r.Logger.Error(err, "error creating resource %s", c.Name)
+		return err
+	}
+
+	if c, err := apicuritoDeployment(r.Client, r.Cfg, r.Apicurito); err != nil {
 		r.Logger.Error(err, "error creating resource %s", c.Name)
 		return err
 	}
