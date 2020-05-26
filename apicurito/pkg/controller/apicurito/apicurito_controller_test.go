@@ -17,11 +17,7 @@
 package apicurito
 
 import (
-	"context"
 	"fmt"
-	"math/rand"
-	"reflect"
-	"strconv"
 	"testing"
 
 	"github.com/apicurio/apicurio-operators/apicurito/pkg/configuration"
@@ -30,8 +26,6 @@ import (
 	"github.com/operator-framework/operator-sdk/pkg/restmapper"
 
 	routev1 "github.com/openshift/api/route/v1"
-	appsv1 "k8s.io/api/apps/v1"
-	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -56,8 +50,6 @@ func TestApicuritoController(t *testing.T) {
 		name              = "apicurito-operator"
 		namespace         = "apicurito"
 		replicas    int32 = 3
-		replicasCh  int32 = 1
-		image             = "apicurio/apicurito-ui"
 		metricsHost       = "0.0.0.0"
 		metricsPort int32 = 8383
 	)
@@ -132,125 +124,6 @@ func TestApicuritoController(t *testing.T) {
 			t.Errorf("\t%s\tShould be able to requeue reconcile.", failed)
 		} else {
 			t.Logf("\t%s\tShould be able to requeue reconcile.", succeed)
-		}
-	}
-
-	// Check if deployment has been created and is correct.
-	{
-		t.Logf("\tTest 1\tWhen the deployment is created the first time.")
-
-		dep := &appsv1.Deployment{}
-		err := cl.Get(context.TODO(), req.NamespacedName, dep)
-		if err != nil {
-			t.Fatalf("\t%s\tShould be able to get deployment but got error: (%v)", failed, err)
-		}
-		t.Logf("\t%s\tShould be able to get deployment.", succeed)
-
-		dsize := *dep.Spec.Replicas
-		if dsize != replicas {
-			t.Errorf("\t%s\tDeployment should have replica size of (%d) but got (%d).", failed, replicas, dsize)
-		} else {
-			t.Logf("\t%s\tDeployment should have replica size of (%d) and got (%d).", succeed, replicas, dsize)
-		}
-
-		di := dep.Spec.Template.Spec.Containers[0].Image
-		if di != image {
-			t.Errorf("\t%s\tDeployment should have image (%s) but got (%s).", failed, image, di)
-		} else {
-			t.Logf("\t%s\tDeployment should have image (%s) and got (%s).", succeed, image, di)
-		}
-
-		ser := &corev1.Service{}
-		if err = cl.Get(context.TODO(), req.NamespacedName, ser); err != nil {
-			t.Errorf("\t%s\tShould be able to get service but got error: (%v)", failed, err)
-		} else {
-			t.Logf("\t%s\tShould be able to get service.", succeed)
-		}
-	}
-
-	// Check that Reconcile update the Apicurito node list with some fake pod names
-	{
-		t.Logf("\tTest 2\tWhen pods are created, Apicurito CR should update with nodes names.")
-
-		// Create the 3 expected pods in namespace and collect their names to check later
-		podLabels := labelsForApicurito(name)
-		pod := corev1.Pod{
-			ObjectMeta: metav1.ObjectMeta{
-				Namespace: namespace,
-				Labels:    podLabels,
-			},
-		}
-
-		podNames := make([]string, 3)
-		for i := 0; i < 3; i++ {
-			pod.ObjectMeta.Name = name + ".pod." + strconv.Itoa(rand.Int())
-			podNames[i] = pod.ObjectMeta.Name
-			if err := cl.Create(context.TODO(), pod.DeepCopy()); err != nil {
-				t.Fatalf("create pod %d: (%v)", i, err)
-			}
-		}
-
-		// Reconcile again so Reconcile() checks pods and updates the apicurito
-		// resources' Status.
-		res, err := r.Reconcile(req)
-		if err != nil {
-			t.Fatalf("\t%s\tShould be able to reconcile but got error: (%v)", failed, err)
-		}
-		if res != (reconcile.Result{}) {
-			t.Errorf("\t%s\tReconcile should return an empty Result but got (%v)", failed, res)
-		} else {
-			t.Logf("\t%s\tReconcile should return an empty Result", succeed)
-		}
-
-		// Get the updated apicurito object.
-		apicurito = &apicuritosv1alpha1.Apicurito{}
-		err = r.client.Get(context.TODO(), req.NamespacedName, apicurito)
-		if err != nil {
-			t.Fatalf("\t%s\tShould be able to get apicurito object but got an error instead: (%v)", failed, err)
-		}
-
-		// Ensure Reconcile() updated the apicurito's Status as expected.
-		nodes := apicurito.Status.Nodes
-		if !reflect.DeepEqual(podNames, nodes) {
-			t.Errorf("\t%s\tPod names should be the same, but they dont match, got (%v), want (%v)", failed, podNames, nodes)
-		} else {
-			t.Logf("\t%s\tPod names should be the same.", succeed)
-		}
-	}
-
-	// Change Apicurito after the Deployment exist and make sure deployment is
-	// being
-	{
-		t.Logf("\tTest 3\tWhen changing the apicurito CR the deployment should reflect those changes.")
-
-		apicurito.Spec.Size = replicasCh
-
-		err := cl.Update(context.TODO(), apicurito)
-		if err != nil {
-			t.Fatalf("\t%s\tShould be able to update Apicurito CR after changing CR: (%v)", failed, err)
-		}
-
-		res, err := r.Reconcile(req)
-		if err != nil {
-			t.Fatalf("\t%s\tShould be able to reconcile after changing CR but got error: (%v)", failed, err)
-		}
-		if res != (reconcile.Result{Requeue: true}) {
-			t.Errorf("\t%s\tAfter changing the replica size in CR, Reconcile should requeue, but got (%v)", failed, res)
-		} else {
-			t.Logf("\t%s\tAfter changing the replica size in CR, Reconcile should requeue.", succeed)
-		}
-
-		dep := &appsv1.Deployment{}
-		err = cl.Get(context.TODO(), req.NamespacedName, dep)
-		if err != nil {
-			t.Fatalf("\t%s\tShould be able to get deployment after changing CR but got error: (%v)", failed, err)
-		}
-
-		dsize := *dep.Spec.Replicas
-		if dsize != replicasCh {
-			t.Errorf("\t%s\tAfter changing the replica size in CR, Deployment should change, want (%d) but got (%d).", failed, replicasCh, dsize)
-		} else {
-			t.Logf("\t%s\tAfter changing the replica size in CR, Deployment should change, want (%d) and got (%d).", succeed, replicasCh, dsize)
 		}
 	}
 }
