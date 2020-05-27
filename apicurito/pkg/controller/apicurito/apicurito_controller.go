@@ -18,7 +18,21 @@ package apicurito
 
 import (
 	"context"
+	"fmt"
+	"reflect"
 	"time"
+
+	"k8s.io/apimachinery/pkg/types"
+
+	"github.com/go-logr/logr"
+
+	"github.com/RHsyseng/operator-utils/pkg/resource/compare"
+	"github.com/RHsyseng/operator-utils/pkg/resource/read"
+	"github.com/RHsyseng/operator-utils/pkg/resource/write"
+
+	"github.com/RHsyseng/operator-utils/pkg/resource"
+	routev1 "github.com/openshift/api/route/v1"
+	corev1 "k8s.io/api/core/v1"
 
 	"github.com/apicurio/apicurio-operators/apicurito/pkg/resources"
 
@@ -123,7 +137,6 @@ func (r *ReconcileApicurito) Reconcile(request reconcile.Request) (reconcile.Res
 		return reconcile.Result{}, err
 	}
 
-	// Ensure the deployment image is the same as the one from configuration
 	c := &configuration.Config{}
 	if err = c.Config(apicurito); err != nil {
 		reqLogger.Error(err, "failed to generate configuration")
@@ -133,14 +146,44 @@ func (r *ReconcileApicurito) Reconcile(request reconcile.Request) (reconcile.Res
 		}, err
 	}
 
-	res := resources.Resource{
+	var rs resources.Generator = resources.Resource{
 		Client:    r.client,
 		Apicurito: apicurito,
 		Cfg:       c,
 		Logger:    reqLogger,
 	}
-	if err := res.Create(); err != nil {
-		reqLogger.Error(err, "failed to create resources", "Namespace", res.Apicurito.Namespace)
+
+	// Fetch routes resources and apply them before the rest
+	// This is needed because ConfigMaps require the routes to be present and should run only once
+	// at startup
+	route := &routev1.Route{}
+	err = r.client.Get(context.TODO(), types.NamespacedName{Name: fmt.Sprintf("%s-%s", apicurito.Name, "generator"), Namespace: apicurito.Namespace}, route)
+	if err != nil && errors.IsNotFound(err) {
+		routes := rs.Routes()
+		err = r.applyResources(apicurito, routes, reqLogger)
+		if err != nil {
+			reqLogger.Error(err, "failed to apply route resources")
+			return reconcile.Result{
+				Requeue:      true,
+				RequeueAfter: 10 * time.Second,
+			}, err
+		}
+
+		time.Sleep(5 * time.Second)
+	}
+
+	// generate all resources and apply them
+	res, err := rs.Generate()
+	if err != nil {
+		reqLogger.Error(err, "failed to generate resources")
+		return reconcile.Result{
+			Requeue:      true,
+			RequeueAfter: 10 * time.Second,
+		}, err
+	}
+	err = r.applyResources(apicurito, res, reqLogger)
+	if err != nil {
+		reqLogger.Error(err, "failed to apply resources")
 		return reconcile.Result{
 			Requeue:      true,
 			RequeueAfter: 10 * time.Second,
@@ -151,4 +194,62 @@ func (r *ReconcileApicurito) Reconcile(request reconcile.Request) (reconcile.Res
 		Requeue:      true,
 		RequeueAfter: 20 * time.Second,
 	}, nil
+}
+
+func (r *ReconcileApicurito) applyResources(apicurito *v1alpha1.Apicurito, res []resource.KubernetesResource, logger logr.Logger) (err error) {
+	deployed, err := getDeployedResources(apicurito, r.client)
+	if err != nil {
+
+	}
+
+	requested := compare.NewMapBuilder().Add(res...).ResourceMap()
+	comparator := compare.NewMapComparator()
+	deltas := comparator.Compare(deployed, requested)
+	writer := write.New(r.client).WithOwnerController(apicurito, r.scheme)
+
+	for resourceType, delta := range deltas {
+		if !delta.HasChanges() {
+			continue
+		}
+
+		logger.Info("", "instances of ", resourceType, "Will create ", len(delta.Added), "update ", len(delta.Updated), "and delete", len(delta.Removed))
+
+		_, err := writer.AddResources(delta.Added)
+		if err != nil {
+			return fmt.Errorf("error AddResources: %s", err)
+		}
+
+		_, err = writer.UpdateResources(deployed[resourceType], delta.Updated)
+		if err != nil {
+			return fmt.Errorf("error UpdateResources : %s", err)
+		}
+
+		_, err = writer.RemoveResources(delta.Removed)
+		if err != nil {
+			return fmt.Errorf("error RemoveResources: %s", err)
+		}
+
+	}
+
+	return
+}
+
+func getDeployedResources(cr *v1alpha1.Apicurito, client client.Client) (map[reflect.Type][]resource.KubernetesResource, error) {
+	var log = logf.Log.WithName("getDeployedResources")
+
+	reader := read.New(client).WithNamespace(cr.Namespace).WithOwnerObject(cr)
+	resourceMap, err := reader.ListAll(
+		&corev1.ConfigMapList{},
+		&corev1.ServiceList{},
+		&appsv1.DeploymentList{},
+		&routev1.RouteList{},
+		&corev1.ServiceAccountList{},
+	)
+	if err != nil {
+		log.Error(err, "Failed to list deployed objects. ", err)
+		return nil, err
+	}
+
+	return resourceMap, nil
+
 }

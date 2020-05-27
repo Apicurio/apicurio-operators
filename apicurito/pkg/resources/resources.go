@@ -17,6 +17,7 @@
 package resources
 
 import (
+	"github.com/RHsyseng/operator-utils/pkg/resource"
 	"github.com/go-logr/logr"
 
 	"github.com/apicurio/apicurio-operators/apicurito/pkg/apis/apicur/v1alpha1"
@@ -31,41 +32,35 @@ type Resource struct {
 	Logger    logr.Logger
 }
 
-func (r Resource) Create() error {
-	if c, err := generatorRoute(r.Client, r.Apicurito); err != nil {
-		r.Logger.Error(err, "error creating resource %s", c.Name)
-		return err
-	}
+type Generator interface {
+	Generate() (rs []resource.KubernetesResource, err error)
+	Routes() (rs []resource.KubernetesResource)
+}
 
-	if c, err := generatorService(r.Client, r.Apicurito); err != nil {
-		r.Logger.Error(err, "error creating resource %s", c.Name)
-		return err
-	}
+func (r Resource) Routes() (rs []resource.KubernetesResource) {
+	rs = []resource.KubernetesResource{}
+	rs = append(rs, apicuritoRoute(r.Apicurito))
+	rs = append(rs, generatorRoute(r.Apicurito))
 
-	if c, err := generatorDeployment(r.Client, r.Cfg, r.Apicurito); err != nil {
-		r.Logger.Error(err, "error creating resource %s", c.Name)
-		return err
-	}
+	return
+}
 
-	if c, err := apicuritoRoute(r.Client, r.Apicurito); err != nil {
-		r.Logger.Error(err, "error creating resource %s", c.Name)
-		return err
-	}
+func (r Resource) Generate() (rs []resource.KubernetesResource, err error) {
+	rs = []resource.KubernetesResource{}
 
-	if c, err := apicuritoConfig(r.Client, r.Apicurito); err != nil {
-		r.Logger.Error(err, "error creating resource %s", c.Name)
-		return err
+	c, err := apicuritoConfig(r.Client, r.Apicurito)
+	if err != nil {
+		r.Logger.Error(err, "error creating resource, name[%s]", c.GetName())
+		return rs, err
 	}
+	rs = append(rs, c)
 
-	if c, err := apicuritoService(r.Client, r.Apicurito); err != nil {
-		r.Logger.Error(err, "error creating resource %s", c.Name)
-		return err
-	}
+	rs = append(rs, apicuritoRoute(r.Apicurito))
+	rs = append(rs, generatorRoute(r.Apicurito))
+	rs = append(rs, generatorService(r.Apicurito))
+	rs = append(rs, generatorDeployment(r.Cfg, r.Apicurito))
+	rs = append(rs, apicuritoService(r.Apicurito))
+	rs = append(rs, apicuritoDeployment(r.Cfg, r.Apicurito))
 
-	if c, err := apicuritoDeployment(r.Client, r.Cfg, r.Apicurito); err != nil {
-		r.Logger.Error(err, "error creating resource %s", c.Name)
-		return err
-	}
-
-	return nil
+	return
 }
