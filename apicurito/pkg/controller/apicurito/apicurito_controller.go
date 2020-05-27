@@ -203,7 +203,7 @@ func (r *ReconcileApicurito) applyResources(apicurito *v1alpha1.Apicurito, res [
 	}
 
 	requested := compare.NewMapBuilder().Add(res...).ResourceMap()
-	comparator := compare.NewMapComparator()
+	comparator := getComparator()
 	deltas := comparator.Compare(deployed, requested)
 	writer := write.New(r.client).WithOwnerController(apicurito, r.scheme)
 
@@ -252,4 +252,28 @@ func getDeployedResources(cr *v1alpha1.Apicurito, client client.Client) (map[ref
 
 	return resourceMap, nil
 
+}
+
+func getComparator() compare.MapComparator {
+	resourceComparator := compare.DefaultComparator()
+
+	configMapType := reflect.TypeOf(corev1.ConfigMap{})
+	resourceComparator.SetComparator(configMapType, func(deployed resource.KubernetesResource, requested resource.KubernetesResource) bool {
+		configMap1 := deployed.(*corev1.ConfigMap)
+		configMap2 := requested.(*corev1.ConfigMap)
+		var pairs [][2]interface{}
+		pairs = append(pairs, [2]interface{}{configMap1.Name, configMap2.Name})
+		pairs = append(pairs, [2]interface{}{configMap1.Namespace, configMap2.Namespace})
+		pairs = append(pairs, [2]interface{}{configMap1.Labels, configMap2.Labels})
+		pairs = append(pairs, [2]interface{}{configMap1.Annotations, configMap2.Annotations})
+		pairs = append(pairs, [2]interface{}{configMap1.Data, configMap2.Data})
+		pairs = append(pairs, [2]interface{}{configMap1.BinaryData, configMap2.BinaryData})
+		equal := compare.EqualPairs(pairs)
+		if !equal {
+			log.Info("Resources are not equal", "deployed", deployed, "requested", requested)
+		}
+		return equal
+	})
+
+	return compare.MapComparator{Comparator: resourceComparator}
 }
