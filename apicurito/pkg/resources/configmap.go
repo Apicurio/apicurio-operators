@@ -20,9 +20,9 @@ import (
 	"context"
 	"fmt"
 
-	routev1 "github.com/openshift/api/route/v1"
+	"github.com/RHsyseng/operator-utils/pkg/resource"
 
-	"k8s.io/apimachinery/pkg/api/errors"
+	routev1 "github.com/openshift/api/route/v1"
 
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -33,7 +33,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
-func apicuritoConfig(client client.Client, a *v1alpha1.Apicurito) (c *corev1.ConfigMap, err error) {
+func apicuritoConfig(client client.Client, a *v1alpha1.Apicurito) (c resource.KubernetesResource, err error) {
 	c = &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: fmt.Sprintf("%s-%s", a.Name, "ui"),
@@ -52,34 +52,26 @@ func apicuritoConfig(client client.Client, a *v1alpha1.Apicurito) (c *corev1.Con
 		return c, fmt.Errorf("unable to fetch Host from route %s", r.Name)
 	}
 
-	err = client.Get(context.TODO(), types.NamespacedName{Name: fmt.Sprintf("%s-%s", a.Name, "ui"), Namespace: a.Namespace}, c)
-	if err != nil && errors.IsNotFound(err) {
-		c = &corev1.ConfigMap{
-			TypeMeta: metav1.TypeMeta{
-				Kind:       "ConfigMap",
-				APIVersion: "v1",
+	c = &corev1.ConfigMap{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "ConfigMap",
+			APIVersion: "v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      fmt.Sprintf("%s-%s", a.Name, "ui"),
+			Namespace: a.Namespace,
+			Labels:    labels,
+			OwnerReferences: []metav1.OwnerReference{
+				*metav1.NewControllerRef(a, schema.GroupVersionKind{
+					Group:   v1alpha1.SchemeGroupVersion.Group,
+					Version: v1alpha1.SchemeGroupVersion.Version,
+					Kind:    a.Kind,
+				}),
 			},
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      fmt.Sprintf("%s-%s", a.Name, "ui"),
-				Namespace: a.Namespace,
-				Labels:    labels,
-				OwnerReferences: []metav1.OwnerReference{
-					*metav1.NewControllerRef(a, schema.GroupVersionKind{
-						Group:   v1alpha1.SchemeGroupVersion.Group,
-						Version: v1alpha1.SchemeGroupVersion.Version,
-						Kind:    a.Kind,
-					}),
-				},
-			},
-			Data: map[string]string{
-				"config.js": fmt.Sprintf("var ApicuritoConfig = { \"generators\": [ { \"name\":\"Fuse Camel Project\", \"url\":\"https://%s/api/v1/generate/camel-project.zip\" } ] }", r.Spec.Host),
-			},
-		}
-
-		// Create the deployment
-		if err = client.Create(context.TODO(), c); err != nil {
-			return
-		}
+		},
+		Data: map[string]string{
+			"config.js": fmt.Sprintf("var ApicuritoConfig = { \"generators\": [ { \"name\":\"Fuse Camel Project\", \"url\":\"https://%s/api/v1/generate/camel-project.zip\" } ] }", r.Spec.Host),
+		},
 	}
 	return
 }

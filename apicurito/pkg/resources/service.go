@@ -17,14 +17,13 @@
 package resources
 
 import (
-	"context"
 	"fmt"
 
-	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/util/intstr"
 
-	"k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/apimachinery/pkg/types"
-	"sigs.k8s.io/controller-runtime/pkg/client"
+	"github.com/RHsyseng/operator-utils/pkg/resource"
+
+	"k8s.io/apimachinery/pkg/runtime/schema"
 
 	"github.com/apicurio/apicurio-operators/apicurito/pkg/apis/apicur/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
@@ -33,97 +32,74 @@ import (
 
 var labels = map[string]string{"app": "apicurito"}
 
-func apicuritoService(client client.Client, a *v1alpha1.Apicurito) (s *corev1.Service, err error) {
-	s = &corev1.Service{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: fmt.Sprintf("%s-%s", a.Name, "ui"),
-		},
-	}
-	err = client.Get(context.TODO(), types.NamespacedName{Name: fmt.Sprintf("%s-%s", a.Name, "ui"), Namespace: a.Namespace}, s)
-	if err != nil && errors.IsNotFound(err) {
-		// Define new service
-		labels["component"] = fmt.Sprintf("%s-%s", a.Name, "ui")
-		s = &corev1.Service{
-			TypeMeta: metav1.TypeMeta{
-				APIVersion: "v1",
-				Kind:       "Service",
-			},
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      fmt.Sprintf("%s-%s", a.Name, "ui"),
-				Namespace: a.Namespace,
-				Labels:    labels,
-				OwnerReferences: []metav1.OwnerReference{
-					*metav1.NewControllerRef(a, schema.GroupVersionKind{
-						Group:   v1alpha1.SchemeGroupVersion.Group,
-						Version: v1alpha1.SchemeGroupVersion.Version,
-						Kind:    a.Kind,
-					}),
-				},
-			},
-			Spec: corev1.ServiceSpec{
-				Type:     corev1.ServiceTypeClusterIP,
-				Selector: labels,
-				Ports: []corev1.ServicePort{
-					{
-						Name: "api-port",
-						Port: 8080,
-					},
-				},
-			},
-		}
+func apicuritoService(a *v1alpha1.Apicurito) (s resource.KubernetesResource) {
 
-		err = client.Create(context.TODO(), s)
-		if err != nil {
-			return
-		}
+	// Define new service
+	labels["component"] = fmt.Sprintf("%s-%s", a.Name, "ui")
+	s = &corev1.Service{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: "v1",
+			Kind:       "Service",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      fmt.Sprintf("%s-%s", a.Name, "ui"),
+			Namespace: a.Namespace,
+			Labels:    labels,
+			OwnerReferences: []metav1.OwnerReference{
+				*metav1.NewControllerRef(a, schema.GroupVersionKind{
+					Group:   v1alpha1.SchemeGroupVersion.Group,
+					Version: v1alpha1.SchemeGroupVersion.Version,
+					Kind:    a.Kind,
+				}),
+			},
+		},
+		Spec: corev1.ServiceSpec{
+			Type:     corev1.ServiceTypeClusterIP,
+			Selector: labels,
+			Ports: []corev1.ServicePort{
+				{
+					Name:       "api-port",
+					Port:       8080,
+					TargetPort: intstr.FromString("api-port"),
+				},
+			},
+		},
 	}
 
 	return
 }
 
-func generatorService(client client.Client, a *v1alpha1.Apicurito) (s *corev1.Service, err error) {
+func generatorService(a *v1alpha1.Apicurito) (s resource.KubernetesResource) {
+	labels["component"] = "apicurito-generator"
+
 	s = &corev1.Service{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: fmt.Sprintf("%s-%s", a.Name, "generator"),
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: "v1",
+			Kind:       "Service",
 		},
-	}
-	err = client.Get(context.TODO(), types.NamespacedName{Name: fmt.Sprintf("%s-%s", a.Name, "generator"), Namespace: a.Namespace}, s)
-	if err != nil && errors.IsNotFound(err) {
-		labels["component"] = "apicurito-generator"
-
-		s = &corev1.Service{
-			TypeMeta: metav1.TypeMeta{
-				APIVersion: "v1",
-				Kind:       "Service",
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      fmt.Sprintf("%s-%s", a.Name, "generator"),
+			Namespace: a.Namespace,
+			Labels:    labels,
+			OwnerReferences: []metav1.OwnerReference{
+				*metav1.NewControllerRef(a, schema.GroupVersionKind{
+					Group:   v1alpha1.SchemeGroupVersion.Group,
+					Version: v1alpha1.SchemeGroupVersion.Version,
+					Kind:    a.Kind,
+				}),
 			},
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      fmt.Sprintf("%s-%s", a.Name, "generator"),
-				Namespace: a.Namespace,
-				Labels:    labels,
-				OwnerReferences: []metav1.OwnerReference{
-					*metav1.NewControllerRef(a, schema.GroupVersionKind{
-						Group:   v1alpha1.SchemeGroupVersion.Group,
-						Version: v1alpha1.SchemeGroupVersion.Version,
-						Kind:    a.Kind,
-					}),
+		},
+		Spec: corev1.ServiceSpec{
+			Type:     corev1.ServiceTypeClusterIP,
+			Selector: labels,
+			Ports: []corev1.ServicePort{
+				{
+					Name:       "http",
+					Port:       8080,
+					TargetPort: intstr.FromString("http"),
 				},
 			},
-			Spec: corev1.ServiceSpec{
-				Type:     corev1.ServiceTypeClusterIP,
-				Selector: labels,
-				Ports: []corev1.ServicePort{
-					{
-						Name: "generator-port",
-						Port: 8080,
-					},
-				},
-			},
-		}
-
-		err = client.Create(context.TODO(), s)
-		if err != nil {
-			return
-		}
+		},
 	}
 
 	return
