@@ -22,9 +22,9 @@ spec:
             fieldRef:
               fieldPath: metadata.namespace
         - name: RELATED_IMAGE_APICURITO_OPERATOR
-          value: registry.redhat.io/fuse7-tech-preview/fuse-apicurito-operator:1.6
+          value: registry.redhat.io/fuse7-tech-preview/fuse-apicurito-operator:1.7
         - name: RELATED_IMAGE_APICURITO
-          value: apicurio/apicurito-ui:latest
+          value: apicurio/apicurito-ui:1.1.1
         - name: RELATED_IMAGE_GENERATOR
           value: apicurio/fuse-apicurito-generator:latest
         - name: POD_NAME
@@ -33,7 +33,7 @@ spec:
               fieldPath: metadata.name
         - name: OPERATOR_NAME
           value: apicurito-operator
-        image: registry.redhat.io/fuse7-tech-preview/fuse-apicurito-operator:1.6
+        image: registry.redhat.io/fuse7-tech-preview/fuse-apicurito-operator:1.7
         imagePullPolicy: Always
         name: apicurito-operator
         resources: {}

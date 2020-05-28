@@ -8,9 +8,8 @@ import (
 const (
 	RedHatImageRegistry = "registry.redhat.io"
 
-	ApicuritoVar         = "APICURIO_IMAGE_"
 	Apicurito16Image     = "fuse-apicurito"
-	Apicurito16ImageTag  = "1.6"
+	Apicurito16ImageTag  = "1.7"
 	Apicurito16ImageURL  = RedHatImageRegistry + "/fuse7/" + Apicurito16Image + ":" + Apicurito16ImageTag
 	Apicurito16Component = "fuse-apicurito-openshift-container"
 )

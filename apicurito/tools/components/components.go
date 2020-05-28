@@ -3,6 +3,8 @@ package components
 import (
 	"strings"
 
+	"github.com/apicurio/apicurio-operators/apicurito/pkg/configuration"
+
 	monv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -10,7 +12,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func GetDeployment(operatorName, repository, context, imageName, tag, imagePullPolicy string, related string) *appsv1.Deployment {
+func GetDeployment(operatorName, repository, context, imageName, tag, imagePullPolicy string, cfg *configuration.Config) *appsv1.Deployment {
 	registryName := strings.Join([]string{repository, context, imageName}, "/")
 	image := strings.Join([]string{registryName, tag}, ":")
 	deployment := &appsv1.Deployment{
@@ -43,7 +45,6 @@ func GetDeployment(operatorName, repository, context, imageName, tag, imagePullP
 							Name:            operatorName,
 							Image:           image,
 							ImagePullPolicy: corev1.PullPolicy(imagePullPolicy),
-							//							Command:         []string{"apicurito"},
 							Env: []corev1.EnvVar{
 
 								{
@@ -60,7 +61,11 @@ func GetDeployment(operatorName, repository, context, imageName, tag, imagePullP
 								},
 								{
 									Name:  "RELATED_IMAGE_APICURITO",
-									Value: related,
+									Value: cfg.UiImage,
+								},
+								{
+									Name:  "RELATED_IMAGE_GENERATOR",
+									Value: cfg.GeneratorImage,
 								},
 								{
 									Name: "POD_NAME",
