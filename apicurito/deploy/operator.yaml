@@ -33,7 +33,7 @@ spec:
               fieldPath: metadata.name
         - name: OPERATOR_NAME
           value: apicurito-operator
-        image: registry.redhat.io/fuse7-tech-preview/fuse-apicurito-operator:1.7
+        image: quay.io/myeung/apicurito-operator:v0.2
         imagePullPolicy: Always
         name: apicurito-operator
         resources: {}

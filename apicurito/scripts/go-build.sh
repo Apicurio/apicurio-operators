@@ -1,7 +1,7 @@
 #!/bin/bash
-REGISTRY=quay.io/${USER}
+REGISTRY=quay.io/myeung
 IMAGE=apicurito-operator
-TAG=v0.1
+TAG=v0.2
 
 export GO111MODULE=on
 go mod vendor
