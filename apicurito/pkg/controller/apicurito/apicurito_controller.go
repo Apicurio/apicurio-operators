@@ -29,6 +29,7 @@ import (
 	"github.com/RHsyseng/operator-utils/pkg/resource/compare"
 	"github.com/RHsyseng/operator-utils/pkg/resource/read"
 	"github.com/RHsyseng/operator-utils/pkg/resource/write"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/RHsyseng/operator-utils/pkg/resource"
 	routev1 "github.com/openshift/api/route/v1"
@@ -129,9 +130,16 @@ func (r *ReconcileApicurito) Reconcile(request reconcile.Request) (reconcile.Res
 			// Owned objects are automatically garbage collected. For additional cleanup logic use finalizers.
 			// Return and don't requeue
 			reqLogger.Info("Apicurito resource not found. Ignoring since object must be deleted.")
+
+			if err := consoleLinkExists(); err == nil {
+				apicurito.ObjectMeta = metav1.ObjectMeta{
+					Name:      request.Name,
+					Namespace: request.Namespace,
+				}
+				removeConsoleLink(r.client, apicurito)
+			}
 			return reconcile.Result{}, nil
 		}
-
 		// Error reading the object - requeue the request.
 		reqLogger.Error(err, "Failed to get Apicurito.")
 		return reconcile.Result{}, err
@@ -171,7 +179,9 @@ func (r *ReconcileApicurito) Reconcile(request reconcile.Request) (reconcile.Res
 
 		time.Sleep(5 * time.Second)
 	}
-
+	if err := consoleLinkExists(); err == nil {
+		createConsoleLink(r.client, apicurito)
+	}
 	// generate all resources and apply them
 	res, err := rs.Generate()
 	if err != nil {

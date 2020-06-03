@@ -73,6 +73,8 @@ func Run() error {
 	templateStrategySpec.Deployments = append(templateStrategySpec.Deployments, []csvDeployments{{Name: csv.OperatorName, Spec: deployment.Spec}}...)
 	role := components.GetRole(csv.OperatorName)
 	templateStrategySpec.Permissions = append(templateStrategySpec.Permissions, []csvPermissions{{ServiceAccountName: deployment.Spec.Template.Spec.ServiceAccountName, Rules: role.Rules}}...)
+	clusterRole := components.GetClusterRole(csv.OperatorName)
+	templateStrategySpec.ClusterPermissions = append(templateStrategySpec.ClusterPermissions, []StrategyDeploymentPermissions{{ServiceAccountName: deployment.Spec.Template.Spec.ServiceAccountName, Rules: clusterRole.Rules}}...)
 
 	updatedStrat, err := json.Marshal(templateStrategySpec)
 	if err != nil {
