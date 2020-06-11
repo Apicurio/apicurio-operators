@@ -6,6 +6,7 @@ import (
 	"github.com/apicurio/apicurio-operators/apicurito/pkg/configuration"
 
 	monv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
+	consolev1 "github.com/openshift/api/console/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
@@ -112,6 +113,7 @@ func GetRole(operatorName string) *rbacv1.Role {
 					"events",
 					"configmaps",
 					"secrets",
+					"serviceaccounts",
 				},
 				Verbs: []string{"*"},
 			},
@@ -174,4 +176,29 @@ func GetRole(operatorName string) *rbacv1.Role {
 
 func int32Ptr(i int32) *int32 {
 	return &i
+}
+
+func GetClusterRole(operatorName string) *rbacv1.ClusterRole {
+	return &rbacv1.ClusterRole{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: rbacv1.SchemeGroupVersion.String(),
+			Kind:       "ClusterRole",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name: operatorName,
+		},
+		Rules: []rbacv1.PolicyRule{
+			{
+				APIGroups: []string{consolev1.GroupVersion.Group},
+				Resources: []string{"consolelinks", "consoleyamlsamples"},
+				Verbs: []string{
+					"get",
+					"create",
+					"list",
+					"update",
+					"delete",
+				},
+			},
+		},
+	}
 }

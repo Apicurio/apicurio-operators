@@ -35,7 +35,7 @@ func generatorRoute(a *v1alpha1.Apicurito) (r resource.KubernetesResource) {
 			APIVersion: routev1.SchemeGroupVersion.String(),
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      fmt.Sprintf("%s-%s", a.Name, "generator"),
+			Name:      GetGeneratorRouteName(a),
 			Namespace: a.Namespace,
 			Labels:    labels,
 			OwnerReferences: []metav1.OwnerReference{
@@ -52,7 +52,7 @@ func generatorRoute(a *v1alpha1.Apicurito) (r resource.KubernetesResource) {
 			TLS:  &routev1.TLSConfig{Termination: routev1.TLSTerminationEdge},
 			To: routev1.RouteTargetReference{
 				Kind: "Service",
-				Name: fmt.Sprintf("%s-%s", a.Name, "generator"),
+				Name: GetGeneratorRouteName(a),
 			},
 		},
 	}
@@ -68,7 +68,7 @@ func apicuritoRoute(a *v1alpha1.Apicurito) (r resource.KubernetesResource) {
 			APIVersion: routev1.SchemeGroupVersion.String(),
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      fmt.Sprintf("%s-%s", a.Name, "ui"),
+			Name:      GetUIRouteName(a),
 			Namespace: a.Namespace,
 			Labels:    labels,
 			OwnerReferences: []metav1.OwnerReference{
@@ -84,10 +84,18 @@ func apicuritoRoute(a *v1alpha1.Apicurito) (r resource.KubernetesResource) {
 			TLS: &routev1.TLSConfig{Termination: routev1.TLSTerminationEdge},
 			To: routev1.RouteTargetReference{
 				Kind: "Service",
-				Name: fmt.Sprintf("%s-%s", a.Name, "ui"),
+				Name: GetUIRouteName(a),
 			},
 		},
 	}
 
 	return
+}
+
+func GetGeneratorRouteName(a *v1alpha1.Apicurito) string {
+	return fmt.Sprintf("%s-%s", a.Name, "generator")
+}
+
+func GetUIRouteName(a *v1alpha1.Apicurito) string {
+	return fmt.Sprintf("%s-%s", a.Name, "ui")
 }
