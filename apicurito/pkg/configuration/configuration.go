@@ -31,7 +31,8 @@ import (
 var ConfigFile string
 
 type Config struct {
-	Image string
+	UiImage        string
+	GeneratorImage string
 }
 
 type ConfigLoader interface {
@@ -79,26 +80,56 @@ func (c *Config) loadFromFile(config string) (err error) {
 
 // From apicurito CR, Unmarshal it into a property object
 func (c *Config) setPropertiesFromApi(apicurito *v1alpha1.Apicurito) (err error) {
-	cApi := &Config{}
-	jsonProperties, err := json.Marshal(apicurito.Spec)
-	if err != nil {
+	if apicurito != nil {
+		cApi := &Config{}
+		jsonProperties, err := json.Marshal(apicurito.Spec)
+		if err != nil {
+			return err
+		}
+
+		err = json.Unmarshal(jsonProperties, cApi)
+		if err != nil {
+			return err
+		}
+
+		err = mergo.Merge(c, cApi, mergo.WithOverride)
 		return err
 	}
-
-	err = json.Unmarshal(jsonProperties, cApi)
-	if err != nil {
-		return err
-	}
-
-	err = mergo.Merge(c, cApi, mergo.WithOverride)
-	return
+	return nil
 }
 
 // Set fields in the configuration from environment variables if they
 // are defined
 func (c *Config) setPropertiesFromEnv() (err error) {
-	cEnv := Config{Image: os.Getenv("APICURITO_IMAGE")}
+	cEnv := Config{
+		UiImage:        os.Getenv("RELATED_IMAGE_APICURITO"),
+		GeneratorImage: os.Getenv("RELATED_IMAGE_GENERATOR"),
+	}
 
 	err = mergo.Merge(c, cEnv, mergo.WithOverride)
 	return
+}
+
+//GetImage
+func GetImage(imageURL string) (image, imageTag, imageContext string) {
+	urlParts := strings.Split(imageURL, "/")
+	if len(urlParts) > 1 {
+		imageContext = urlParts[len(urlParts)-2]
+	}
+	imageAndTag := urlParts[len(urlParts)-1]
+	imageParts := strings.Split(imageAndTag, ":")
+	image = imageParts[0]
+	if len(imageParts) > 1 {
+		imageTag = imageParts[len(imageParts)-1]
+	}
+	return image, imageTag, imageContext
+}
+
+// MajorMinorMicro ...
+func MajorMinorMicro(productVersion string) (major, minor, micro string) {
+	version := strings.Split(productVersion, ".")
+	for len(version) < 3 {
+		version = append(version, "0")
+	}
+	return version[0], version[1], version[2]
 }

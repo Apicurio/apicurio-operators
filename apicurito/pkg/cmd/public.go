@@ -53,6 +53,7 @@ func NewApicuritoCommand(ctx context.Context) (*cobra.Command, error) {
 	cmd.PersistentFlags().AddGoFlag(&f)
 
 	cmd.AddCommand(newRunCommand(&options))
+	cmd.AddCommand(newOlmCommand(&options))
 	return &cmd, nil
 }
 

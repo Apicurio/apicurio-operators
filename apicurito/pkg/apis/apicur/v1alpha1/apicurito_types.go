@@ -38,10 +38,6 @@ type ApicuritoSpec struct {
 // ApicuritoStatus defines the observed state of Apicurito
 // +k8s:openapi-gen=true
 type ApicuritoStatus struct {
-	// Nodes are the names of the apicurito pods
-	// +listType=set
-	Nodes []string `json:"nodes"`
-
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book.kubebuilder.io/beyond_basics/generating_crd.html

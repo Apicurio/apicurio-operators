@@ -37,7 +37,7 @@ func Test_loadFromFile(t *testing.T) {
 		{
 			"When loading a config file, all parameter should match",
 			args{config: "../../build/conf/config_test.yaml"},
-			&Config{Image: "apicurio/apicurito-ui"},
+			&Config{UiImage: "apicurio/apicurito-ui:1.1.1", GeneratorImage: "fuse-apicurito-generator:latest"},
 			false,
 		},
 	}
@@ -58,7 +58,8 @@ func Test_loadFromFile(t *testing.T) {
 
 func TestConfig_setPropertiesFromEnv(t *testing.T) {
 	type fields struct {
-		Image string
+		UiImage        string
+		GeneratorImage string
 	}
 	tests := []struct {
 		name       string
@@ -68,24 +69,30 @@ func TestConfig_setPropertiesFromEnv(t *testing.T) {
 		wantConfig *Config
 	}{
 		{
-			name:       "When env is provided it should replace the existing image",
-			fields:     fields{Image: "someimage"},
-			env:        map[string]string{"APICURITO_IMAGE": "image_from_env"},
-			wantConfig: &Config{Image: "image_from_env"},
+			name:   "When env is provided it should replace the existing image",
+			fields: fields{UiImage: "someimage", GeneratorImage: "someotherimage"},
+			env: map[string]string{
+				"RELATED_IMAGE_APICURITO": "image_from_env",
+				"RELATED_IMAGE_GENERATOR": "image_from_env_g",
+			},
+			wantConfig: &Config{UiImage: "image_from_env", GeneratorImage: "image_from_env_g"},
 			wantErr:    false,
 		},
 		{
-			name:       "When env is provided and no images is set, env should prevail",
-			fields:     fields{},
-			env:        map[string]string{"APICURITO_IMAGE": "image_from_env"},
-			wantConfig: &Config{Image: "image_from_env"},
+			name:   "When env is provided and no images is set, env should prevail",
+			fields: fields{},
+			env: map[string]string{
+				"RELATED_IMAGE_APICURITO": "image_from_env",
+				"RELATED_IMAGE_GENERATOR": "image_from_env_g",
+			},
+			wantConfig: &Config{UiImage: "image_from_env", GeneratorImage: "image_from_env_g"},
 			wantErr:    false,
 		},
 		{
 			name:       "When no env is provided, the initial value should prevail",
-			fields:     fields{Image: "someimage"},
+			fields:     fields{UiImage: "someimage", GeneratorImage: "someotherimage"},
 			env:        map[string]string{},
-			wantConfig: &Config{Image: "someimage"},
+			wantConfig: &Config{UiImage: "someimage", GeneratorImage: "someotherimage"},
 			wantErr:    false,
 		},
 	}
@@ -96,7 +103,8 @@ func TestConfig_setPropertiesFromEnv(t *testing.T) {
 			}
 
 			c := &Config{
-				Image: tt.fields.Image,
+				UiImage:        tt.fields.UiImage,
+				GeneratorImage: tt.fields.GeneratorImage,
 			}
 			if err := c.setPropertiesFromEnv(); (err != nil) != tt.wantErr {
 				t.Errorf("setPropertiesFromEnv() error = %v, wantErr %v", err, tt.wantErr)

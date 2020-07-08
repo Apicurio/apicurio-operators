@@ -1,1 +1,2 @@
-Image: "apicurio/apicurito-ui:1.1.1"
+UiImage: "apicurio/apicurito-ui:1.1.1"
+GeneratorImage: "apicurio/fuse-apicurito-generator:latest"
