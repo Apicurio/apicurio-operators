@@ -4,21 +4,27 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
+	"io"
+	"io/ioutil"
+	"log"
 	"net/http"
+	"path/filepath"
+
+	"github.com/blang/semver"
 
 	api "github.com/apicurio/apicurio-operators/apicurito/pkg/apis/apicur/v1alpha1"
 	config "github.com/apicurio/apicurio-operators/apicurito/pkg/configuration"
-	"github.com/heroku/docker-registry-client/registry"
-
 	"github.com/apicurio/apicurio-operators/apicurito/tools/components"
 	"github.com/apicurio/apicurio-operators/apicurito/tools/constants"
 	"github.com/apicurio/apicurio-operators/apicurito/tools/util"
 	"github.com/apicurio/apicurio-operators/apicurito/version"
-	"github.com/blang/semver"
+	"github.com/heroku/docker-registry-client/registry"
 	oimagev1 "github.com/openshift/api/image/v1"
 	csvv1 "github.com/operator-framework/operator-lifecycle-manager/pkg/api/apis/operators/v1alpha1"
 	olmversion "github.com/operator-framework/operator-lifecycle-manager/pkg/lib/version"
+	sv "github.com/rogpeppe/go-internal/semver"
 	"github.com/tidwall/sjson"
+	"gopkg.in/yaml.v2"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	rbac "k8s.io/api/rbac/v1"
@@ -214,16 +220,25 @@ func Run() error {
 		},
 	}
 
-	opMajor, opMinor, opMicro := config.MajorMinorMicro(version.Version)
-	csvFile := "deploy/manifests" + "/" + opMajor + "." + opMinor + "." + opMicro + "/" + csvVersionedName + ".clusterserviceversion.yaml"
+	// opMajor, opMinor, opMicro := config.MajorMinorMicro(version.Version)
+	path, err := os.Getwd()
+	if err != nil {
+		log.Println(err)
+	}
+	path = path + "/deploy/"
+
+	csvFile := path + "bundle/manifests/" + operatorName + ".clusterserviceversion.yaml"
+	if err := ensureDir(path); err != nil {
+		return err
+	}
 
 	imageName, _, _ := config.GetImage(deployment.Spec.Template.Spec.Containers[0].Image)
 	relatedImages := []image{}
 
 	templateStruct.Annotations["certified"] = "false"
-	deployFile := "deploy/operator.yaml"
+	deployFile := path + "operator.yaml"
 	createFile(deployFile, deployment)
-	roleFile := "deploy/role.yaml"
+	roleFile := path + "role.yaml"
 	createFile(roleFile, role)
 
 	relatedImages = append(relatedImages, image{Name: imageName, Image: deployment.Spec.Template.Spec.Containers[0].Image})
@@ -315,30 +330,35 @@ func Run() error {
 		fmt.Println(err)
 	}
 	createFile(csvFile, &templateInterface)
-	packageFile := "deploy/manifests/" + csv.Name + ".package.yaml"
-	p, err := os.Create(packageFile)
-	defer p.Close()
+
+	o, err := buildContainer()
 	if err != nil {
 		return err
 	}
-	pwr := bufio.NewWriter(p)
-	pwr.WriteString("#! package-manifest: " + csvFile + "\n")
-	packagedata := packageStruct{
-		PackageName: csv.Name,
-		Channels: []channel{
-			{
-				Name:       maturity,
-				CurrentCSV: operatorName + ".v" + version.PriorVersion,
-			},
-			{
-				Name:       maturity + "-offline",
-				CurrentCSV: csvVersionedName,
-			},
-		},
-		DefaultChannel: maturity,
+	if err = ioutil.WriteFile(filepath.Join(path, "bundle", "container.yaml"), o, 0644); err != nil {
+		return err
 	}
-	util.MarshallObject(packagedata, pwr)
-	pwr.Flush()
+
+	od, err := buildDocker(c)
+	if err != nil {
+		return err
+	}
+	if err = ioutil.WriteFile(filepath.Join(path, "bundle", "Dockerfile"), od, 0644); err != nil {
+		return err
+	}
+
+	oa, err := buildAnnotation()
+	if err != nil {
+		return err
+	}
+	if err = ioutil.WriteFile(filepath.Join(path, "bundle", "metadata", "annotations.yaml"), oa, 0644); err != nil {
+		return err
+	}
+
+	_, err = copy(filepath.Join(path, "crds", "apicur.io_apicuritoes_crd.yaml"), filepath.Join(path, "bundle", "manifests", "apicur.io_apicuritoes_crd.yaml"))
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -442,11 +462,7 @@ type channel struct {
 	Name       string `json:"name"`
 	CurrentCSV string `json:"currentCSV"`
 }
-type packageStruct struct {
-	PackageName    string    `json:"packageName"`
-	Channels       []channel `json:"channels"`
-	DefaultChannel string    `json:"defaultChannel"`
-}
+
 type image struct {
 	Name  string `json:"name"`
 	Image string `json:"image"`
@@ -495,4 +511,124 @@ func GetEnv(key, fallback string) string {
 		value = fallback
 	}
 	return value
+}
+
+// Generate directory tree for OLM bundle. Path must already
+// exist
+func ensureDir(path string) (err error) {
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		return err
+	}
+
+	err = os.Mkdir(filepath.Join(path, "bundle"), 0755)
+	if err != nil && !os.IsExist(err) {
+		return err
+	}
+
+	err = os.Mkdir(filepath.Join(path, "bundle", "manifests"), 0755)
+	if err != nil && !os.IsExist(err) {
+		return err
+	}
+
+	err = os.Mkdir(filepath.Join(path, "bundle", "metadata"), 0755)
+	if err != nil && !os.IsExist(err) {
+		return err
+	}
+
+	return nil
+}
+
+func buildContainer() (out []byte, err error) {
+	name := "apicuritooperator"
+
+	channel := fmt.Sprintf("apicurito-%s", sv.MajorMinor("v"+version.Version))
+
+	m := map[string]map[string]string{
+		"annotations": {
+			"operators.operatorframework.io.bundle.mediatype.v1":       "registry+v1",
+			"operators.operatorframework.io.bundle.manifests.v1":       "manifests/",
+			"operators.operatorframework.io.bundle.metadata.v1":        "metadata/",
+			"operators.operatorframework.io.bundle.package.v1":         name,
+			"operators.operatorframework.io.bundle.channels.v1":        channel,
+			"operators.operatorframework.io.bundle.channel.default.v1": channel,
+		},
+	}
+	out, err = yaml.Marshal(m)
+	return
+}
+
+func buildDocker(c *config.Config) (out []byte, err error) {
+	channel := fmt.Sprintf("apicurito-%s", sv.MajorMinor("v"+version.Version))
+
+	m := `FROM scratch
+
+LABEL operators.operatorframework.io.bundle.mediatype.v1=registry+v1
+LABEL operators.operatorframework.io.bundle.manifests.v1=manifests/
+LABEL operators.operatorframework.io.bundle.metadata.v1=metadata/
+LABEL operators.operatorframework.io.bundle.package.v1=apicurito
+LABEL operators.operatorframework.io.bundle.channels.v1=%s
+LABEL operators.operatorframework.io.bundle.channel.default.v1=%s
+LABEL com.redhat.delivery.operator.bundle=true
+LABEL com.redhat.openshift.versions="%s"
+
+COPY manifests /manifests/
+COPY metadata/annotations.yaml /metadata/annotations.yaml
+
+LABEL name="fuse7/fuse-online-operator-metadata" \
+      version="%s" \
+      maintainer="Otavio Piske <opiske@redhat.com>" \
+      summary="Operator which manages the lifecycle of the Apicurito application." \
+      description="Operator which manages the lifecycle of the Apicurito application." \
+      com.redhat.component="apicurito-operator-metadata-container" \
+      io.k8s.description="Operator which manages the lifecycle of the Apicurito application." \
+      io.k8s.display-name="Red Hat Apicurito Operator" \
+      io.openshift.tags="fuse"
+`
+	m = fmt.Sprintf(m, channel, channel, c.SupportedOpenShiftVersions, version.Version)
+	out = []byte(m)
+	return
+}
+
+func buildAnnotation() (out []byte, err error) {
+	name := "apicurito-operator"
+
+	channel := fmt.Sprintf("apicurito-%s", sv.MajorMinor("v"+version.Version))
+
+	m := map[string]map[string]string{
+		"annotations": {
+			"operators.operatorframework.io.bundle.mediatype.v1":       "registry+v1",
+			"operators.operatorframework.io.bundle.manifests.v1":       "manifests/",
+			"operators.operatorframework.io.bundle.metadata.v1":        "metadata/",
+			"operators.operatorframework.io.bundle.package.v1":         name,
+			"operators.operatorframework.io.bundle.channels.v1":        channel,
+			"operators.operatorframework.io.bundle.channel.default.v1": channel,
+		},
+	}
+	out, err = yaml.Marshal(m)
+	return
+}
+
+func copy(src, dst string) (int64, error) {
+	sourceFileStat, err := os.Stat(src)
+	if err != nil {
+		return 0, err
+	}
+
+	if !sourceFileStat.Mode().IsRegular() {
+		return 0, fmt.Errorf("%s is not a regular file", src)
+	}
+
+	source, err := os.Open(src)
+	if err != nil {
+		return 0, err
+	}
+	defer source.Close()
+
+	destination, err := os.Create(dst)
+	if err != nil {
+		return 0, err
+	}
+	defer destination.Close()
+	nBytes, err := io.Copy(destination, source)
+	return nBytes, err
 }
