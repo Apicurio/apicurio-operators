@@ -18,12 +18,12 @@ metadata:
     categories: Integration & Delivery
     certified: "false"
     containerImage: registry.redhat.io/fuse7-tech-preview/fuse-apicurito-operator:1.7
-    createdAt: "2020-09-18 08:33:05"
+    createdAt: "2020-09-22 15:26:36"
     description: Manages the installation and upgrades of apicurito, a small/minimal
       version of Apicurio
     repository: https://github.com/Apicurio/apicurio-operators/tree/master/apicurito
     support: Apicurito Project
-  name: apicuritooperator.v0.2.0
+  name: apicuritooperator.v7.8.0
   namespace: placeholder
 spec:
   apiservicedefinitions: {}
@@ -106,7 +106,14 @@ spec:
             metadata:
               labels:
                 app: apicurito
+                com.company: Red_Hat
                 name: apicurito-operator
+                rht.comp: Fuse
+                rht.comp_ver: "7.8"
+                rht.prod_name: Red_Hat_Integration
+                rht.prod_ver: "7.8"
+                rht.subcomp: apicurito-operator
+                rht.subcomp_t: infrastructure
             spec:
               containers:
               - env:
@@ -219,8 +226,8 @@ spec:
     name: fuse-apicurito-operator
   - image: registry.redhat.io/fuse7/fuse-apicurito:1.7
     name: fuse-apicurito
-  replaces: apicuritooperator.v0.1.0
+  replaces: apicuritooperator.v0.2.0
   selector:
     matchLabels:
       name: apicuritooperator
-  version: 0.2.0
+  version: 7.8.0
