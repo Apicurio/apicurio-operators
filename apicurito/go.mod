@@ -16,14 +16,15 @@ require (
 	github.com/operator-framework/operator-lifecycle-manager v0.0.0-20191115003340-16619cd27fa5
 	github.com/operator-framework/operator-sdk v0.15.0
 	github.com/prometheus/client_golang v1.2.1
+	github.com/rogpeppe/go-internal v1.5.0
 	github.com/spf13/cobra v0.0.5
 	github.com/stretchr/testify v1.4.0
 	github.com/tidwall/gjson v1.6.0 // indirect
 	github.com/tidwall/sjson v1.0.4
+	gopkg.in/yaml.v2 v2.2.8
 	k8s.io/api v0.17.2
 	k8s.io/apiextensions-apiserver v0.17.0 // indirect
 	k8s.io/apimachinery v0.17.2
-	k8s.io/client-go v12.0.0+incompatible // indirect
 	k8s.io/kube-openapi v0.0.0-20191107075043-30be4d16710a
 	sigs.k8s.io/controller-runtime v0.4.0
 
