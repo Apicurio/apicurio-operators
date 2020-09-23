@@ -13,7 +13,14 @@ spec:
     metadata:
       labels:
         app: apicurito
+        com.company: Red_Hat
         name: apicurito-operator
+        rht.comp: Fuse
+        rht.comp_ver: "7.8"
+        rht.prod_name: Red_Hat_Integration
+        rht.prod_ver: "7.8"
+        rht.subcomp: apicurito-operator
+        rht.subcomp_t: infrastructure
     spec:
       containers:
       - env:

@@ -22,7 +22,6 @@ import (
 	oimagev1 "github.com/openshift/api/image/v1"
 	csvv1 "github.com/operator-framework/operator-lifecycle-manager/pkg/api/apis/operators/v1alpha1"
 	olmversion "github.com/operator-framework/operator-lifecycle-manager/pkg/lib/version"
-	sv "github.com/rogpeppe/go-internal/semver"
 	"github.com/tidwall/sjson"
 	"gopkg.in/yaml.v2"
 	appsv1 "k8s.io/api/apps/v1"
@@ -541,7 +540,7 @@ func ensureDir(path string) (err error) {
 func buildContainer() (out []byte, err error) {
 	name := "apicuritooperator"
 
-	channel := fmt.Sprintf("apicurito-%s", sv.MajorMinor("v"+version.Version))
+	channel := fmt.Sprintf("apicurito-%s.x", version.ShortVersion())
 
 	m := map[string]map[string]string{
 		"annotations": {
@@ -558,7 +557,7 @@ func buildContainer() (out []byte, err error) {
 }
 
 func buildDocker(c *config.Config) (out []byte, err error) {
-	channel := fmt.Sprintf("apicurito-%s", sv.MajorMinor("v"+version.Version))
+	channel := fmt.Sprintf("apicurito-%s.x", version.ShortVersion())
 
 	m := `FROM scratch
 
@@ -592,7 +591,7 @@ LABEL name="fuse7/fuse-online-operator-metadata" \
 func buildAnnotation() (out []byte, err error) {
 	name := "apicurito-operator"
 
-	channel := fmt.Sprintf("apicurito-%s", sv.MajorMinor("v"+version.Version))
+	channel := fmt.Sprintf("apicurito-%s.x", version.ShortVersion())
 
 	m := map[string]map[string]string{
 		"annotations": {
