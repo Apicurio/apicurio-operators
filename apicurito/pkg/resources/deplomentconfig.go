@@ -26,7 +26,6 @@ import (
 	"github.com/apicurio/apicurio-operators/apicurito/pkg/apis/apicur/v1alpha1"
 	"github.com/apicurio/apicurio-operators/apicurito/pkg/configuration"
 	"github.com/apicurio/apicurio-operators/apicurito/version"
-	sv "github.com/rogpeppe/go-internal/semver"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -40,8 +39,8 @@ func apicuritoDeployment(c *configuration.Config, a *v1alpha1.Apicurito) (dep re
 	deployLabels := map[string]string{
 		"app":           "apicurito",
 		"com.company":   "Red_Hat",
-		"rht.prod_name": "Red_Hat_Integration " + sv.MajorMinor(version.Version),
-		"rht.prod_ver":  sv.MajorMinor(version.Version),
+		"rht.prod_name": "Red_Hat_Integration",
+		"rht.prod_ver":  version.ShortVersion(),
 		"rht.comp":      "Fuse",
 		"rht.comp_ver":  version.ShortVersion(),
 		"rht.subcomp":   fmt.Sprintf("%s-%s", a.Name, "ui"),
