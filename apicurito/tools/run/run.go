@@ -94,7 +94,8 @@ func Run() error {
 	var description = "Apicurito is a small/minimal version of Apicurio, a standalone API design studio that can be used to create new or edit existing API designs (using the OpenAPI specification).\n"
 	description += "\n"
 	description += "This operator supports the installation and upgrade of apicurito. Apicurito components are:\n"
-	description += "   - apicurito-ui (apicurito application)\n"
+	description += "   - apicurito-ui (Apicurito API designer application)\n"
+	description += "   - apicurito-generator (Apicurito fuse project generator)\n"
 	description += "   - apicurito route (to access apicurito from outside openshift)\n"
 	description += "\n"
 	description += "### How to install\n"
@@ -166,26 +167,6 @@ func Run() error {
 			DisplayName: "Apicurito CRD",
 			Description: "CRD for Apicurito",
 			Name:        "apicuritoes." + api.SchemeGroupVersion.Group,
-			/*Resources: []csvv1.APIResourceReference{
-
-				{
-					Kind:    "StatefulSet",
-					Version: appsv1.SchemeGroupVersion.String(),
-				},
-				{
-					Kind:    "Secret",
-					Version: corev1.SchemeGroupVersion.String(),
-				},
-				{
-					Kind:    "Service",
-					Version: corev1.SchemeGroupVersion.String(),
-				},
-
-				{
-					Kind:    "ImageStream",
-					Version: oimagev1.SchemeGroupVersion.String(),
-				},
-			},*/
 			SpecDescriptors: []csvv1.SpecDescriptor{
 
 				{
@@ -193,12 +174,6 @@ func Run() error {
 					DisplayName:  "Size",
 					Path:         "size",
 					XDescriptors: []string{"urn:alm:descriptor:com.tectonic.ui:fieldGroup:Deployment", "urn:alm:descriptor:com.tectonic.ui:podCount"},
-				},
-				{
-					Description:  "The image used for the Apicurito deployment",
-					DisplayName:  "Image",
-					Path:         "image",
-					XDescriptors: []string{"urn:alm:descriptor:com.tectonic.ui:fieldGroup:Deployment", "urn:alm:descriptor:com.tectonic.ui:text"},
 				},
 			},
 		},
@@ -524,15 +499,19 @@ func ensureDir(path string) (err error) {
 }
 
 func buildContainer() (out []byte, err error) {
-	m := map[string]map[string]string{
-		"operator_manifests": {
-			"enable_digest_pinning":        "true",
-			"enable_registry_replacements": "false",
-			"enable_repo_replacements":     "false",
-			"manifests_dir":                "manifests",
-		},
-	}
-	out, err = yaml.Marshal(m)
+	m := `operator_manifests:
+  manifests_dir: manifests
+  enable_digest_pinning: true
+  enable_repo_replacements: true
+  enable_registry_replacements: true
+  repo_replacements:
+    - registry: registry.redhat.io
+      package_mappings:
+        fuse-apicurito-operator-container: fuse7
+        fuse-apicurito-openshift-container: fuse7
+        fuse-apicurito-generator-openshift-container: fuse7`
+
+	out = []byte(m)
 	return
 }
 
@@ -559,10 +538,10 @@ LABEL name="fuse7/fuse-online-operator-metadata" \
       maintainer="Otavio Piske <opiske@redhat.com>" \
       summary="Operator which manages the lifecycle of the Apicurito application." \
       description="Operator which manages the lifecycle of the Apicurito application." \
-      com.redhat.component="apicurito-operator-metadata-container" \
+      com.redhat.component="fuse-apicurito-operator-metadata-container" \
       io.k8s.description="Operator which manages the lifecycle of the Apicurito application." \
       io.k8s.display-name="Red Hat Apicurito Operator" \
-      io.openshift.tags="fuse"
+      io.openshift.tags="fuse,API"
 `
 	m = fmt.Sprintf(m, name, channel, channel, c.SupportedOpenShiftVersions, fmt.Sprintf("%s.x", version.ShortVersion()))
 	out = []byte(m)
