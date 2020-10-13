@@ -45,13 +45,13 @@ var (
 	maintainer = "Apicurito Project"
 	csv        = csvSetting{
 
-		Name:         "apicurito",
-		DisplayName:  "Apicurito Operator",
-		OperatorName: "apicurito-operator",
+		Name:         "fuse-apicurito",
+		DisplayName:  "Red Hat Apicurito Operator",
+		OperatorName: "fuse-apicurito",
 		CsvDir:       "apicurito-operator",
 		Registry:     "registry.redhat.io",
-		Context:      "fuse7-tech-preview",
-		ImageName:    "fuse-apicurito-operator",
+		Context:      "fuse7",
+		ImageName:    "fuse-apicurito-rhel7-operator",
 		Tag:          constants.Apicurito16ImageTag,
 	}
 )
@@ -64,7 +64,7 @@ func Run() error {
 
 	imageShaMap := map[string]string{}
 
-	operatorName := csv.Name + "operator"
+	operatorName := csv.Name
 
 	templateStruct := &csvv1.ClusterServiceVersion{}
 	templateStruct.SetGroupVersionKind(csvv1.SchemeGroupVersion.WithKind("ClusterServiceVersion"))
@@ -94,7 +94,8 @@ func Run() error {
 	var description = "Apicurito is a small/minimal version of Apicurio, a standalone API design studio that can be used to create new or edit existing API designs (using the OpenAPI specification).\n"
 	description += "\n"
 	description += "This operator supports the installation and upgrade of apicurito. Apicurito components are:\n"
-	description += "   - apicurito-ui (apicurito application)\n"
+	description += "   - apicurito-ui (Apicurito API designer application)\n"
+	description += "   - apicurito-generator (Apicurito fuse project generator)\n"
 	description += "   - apicurito route (to access apicurito from outside openshift)\n"
 	description += "\n"
 	description += "### How to install\n"
@@ -102,25 +103,10 @@ func Run() error {
 	description += "\n"
 	description += "At the moment, following fields are supported as part of the CR:\n"
 	description += "   - size: how many pods your the apicurito operand will have.\n"
-	description += "   - image: the apicurito image, this can be found [here](https://hub.docker.com/r/apicurio/apicurito-ui/tags). Changing this image in an existing installation will trigger an upgrade of the operand."
 	description += "\n"
-	description += "### How to upgrade\n"
-	description += "Upgrades are trigered by updating the image field in the CR. This can be done manually via the Openshift console, or with kubeclt:\n"
-	description += "```\n"
-	description += "$ cat apicurito_cr.yaml\n"
-	description += "    apiVersion: apicur.io/v1alpha1\n"
-	description += "      kind: Apicurito\n"
-	description += "      metadata:\n"
-	description += "        name: apicurito-service\n"
-	description += "      spec:\n"
-	description += "        size: 3\n"
-	description += "        image: apicurio/apicurito-ui:newversion\n"
-	description += ""
-	description += " $ kubectl apply -f apicurito_cr.yaml\n"
-	description += "```\n"
 
 	repository := "https://github.com/Apicurio/apicurio-operators/tree/master/apicurito"
-	examples := []string{"{\n        \"apiVersion\": \"apicur.io/v1alpha1\",\n        \"kind\": \"Apicurito\",\n        \"metadata\": {\n          \"name\": \"apicurito-service\"\n        },\n        \"spec\": {\n          \"size\": 3,\n          \"image\": \"registry.redhat.io/fuse7/fuse-apicurito@sha256:1177f9ee841f95f40ea0b0de76f28c3a7b01ebef5ab335674f24bb5c17f88431\"\n        }\n      }"}
+	examples := []string{"{\n        \"apiVersion\": \"apicur.io/v1alpha1\",\n        \"kind\": \"Apicurito\",\n        \"metadata\": {\n          \"name\": \"apicurito-service\"\n        },\n        \"spec\": {\n          \"size\": 3\n        }\n}"}
 
 	templateStruct.SetAnnotations(
 		map[string]string{
@@ -180,27 +166,7 @@ func Run() error {
 			Kind:        "Apicurito",
 			DisplayName: "Apicurito CRD",
 			Description: "CRD for Apicurito",
-			Name:        "apicuritos." + api.SchemeGroupVersion.Group,
-			/*Resources: []csvv1.APIResourceReference{
-
-				{
-					Kind:    "StatefulSet",
-					Version: appsv1.SchemeGroupVersion.String(),
-				},
-				{
-					Kind:    "Secret",
-					Version: corev1.SchemeGroupVersion.String(),
-				},
-				{
-					Kind:    "Service",
-					Version: corev1.SchemeGroupVersion.String(),
-				},
-
-				{
-					Kind:    "ImageStream",
-					Version: oimagev1.SchemeGroupVersion.String(),
-				},
-			},*/
+			Name:        "apicuritoes." + api.SchemeGroupVersion.Group,
 			SpecDescriptors: []csvv1.SpecDescriptor{
 
 				{
@@ -208,12 +174,6 @@ func Run() error {
 					DisplayName:  "Size",
 					Path:         "size",
 					XDescriptors: []string{"urn:alm:descriptor:com.tectonic.ui:fieldGroup:Deployment", "urn:alm:descriptor:com.tectonic.ui:podCount"},
-				},
-				{
-					Description:  "The image used for the Apicurito deployment",
-					DisplayName:  "Image",
-					Path:         "image",
-					XDescriptors: []string{"urn:alm:descriptor:com.tectonic.ui:fieldGroup:Deployment", "urn:alm:descriptor:com.tectonic.ui:text"},
 				},
 			},
 		},
@@ -226,7 +186,7 @@ func Run() error {
 	}
 	path = path + "/deploy/"
 
-	csvFile := path + "bundle/manifests/" + operatorName + ".clusterserviceversion.yaml"
+	csvFile := path + "bundle/manifests/apicurito.clusterserviceversion.yaml"
 	if err := ensureDir(path); err != nil {
 		return err
 	}
@@ -251,7 +211,7 @@ func Run() error {
 			Tags: []constants.ImageRefTag{
 				{
 					// Needs to match the component name for upstream and downstream.
-					Name: "fuse7-tech-preview/fuse-apicurito-operator",
+					Name: "fuse7/fuse-apicurito-rhel7-operator",
 					From: &corev1.ObjectReference{
 						// Needs to match the image that is in your CSV that you want to replace.
 						Name: deployment.Spec.Template.Spec.Containers[0].Image,
@@ -271,6 +231,7 @@ func Run() error {
 	})
 
 	relatedImages = append(relatedImages, getRelatedImage(constants.Apicurito16ImageURL))
+	relatedImages = append(relatedImages, getRelatedImage(constants.Generator16ImageURL))
 
 	if GetBoolEnv("DIGESTS") {
 
@@ -538,33 +499,32 @@ func ensureDir(path string) (err error) {
 }
 
 func buildContainer() (out []byte, err error) {
-	name := "apicuritooperator"
+	m := `operator_manifests:
+  manifests_dir: manifests
+  enable_digest_pinning: true
+  enable_repo_replacements: true
+  enable_registry_replacements: true
+  repo_replacements:
+    - registry: registry.redhat.io
+      package_mappings:
+        fuse-apicurito-operator-container: fuse7
+        fuse-apicurito-openshift-container: fuse7
+        fuse-apicurito-generator-openshift-container: fuse7`
 
-	channel := fmt.Sprintf("apicurito-%s.x", version.ShortVersion())
-
-	m := map[string]map[string]string{
-		"annotations": {
-			"operators.operatorframework.io.bundle.mediatype.v1":       "registry+v1",
-			"operators.operatorframework.io.bundle.manifests.v1":       "manifests/",
-			"operators.operatorframework.io.bundle.metadata.v1":        "metadata/",
-			"operators.operatorframework.io.bundle.package.v1":         name,
-			"operators.operatorframework.io.bundle.channels.v1":        channel,
-			"operators.operatorframework.io.bundle.channel.default.v1": channel,
-		},
-	}
-	out, err = yaml.Marshal(m)
+	out = []byte(m)
 	return
 }
 
 func buildDocker(c *config.Config) (out []byte, err error) {
-	channel := fmt.Sprintf("apicurito-%s.x", version.ShortVersion())
+	name := "fuse-apicurito"
+	channel := fmt.Sprintf("%s-%s.x", name, version.ShortVersion())
 
 	m := `FROM scratch
 
 LABEL operators.operatorframework.io.bundle.mediatype.v1=registry+v1
 LABEL operators.operatorframework.io.bundle.manifests.v1=manifests/
 LABEL operators.operatorframework.io.bundle.metadata.v1=metadata/
-LABEL operators.operatorframework.io.bundle.package.v1=apicurito
+LABEL operators.operatorframework.io.bundle.package.v1=-%s
 LABEL operators.operatorframework.io.bundle.channels.v1=%s
 LABEL operators.operatorframework.io.bundle.channel.default.v1=%s
 LABEL com.redhat.delivery.operator.bundle=true
@@ -578,18 +538,18 @@ LABEL name="fuse7/fuse-online-operator-metadata" \
       maintainer="Otavio Piske <opiske@redhat.com>" \
       summary="Operator which manages the lifecycle of the Apicurito application." \
       description="Operator which manages the lifecycle of the Apicurito application." \
-      com.redhat.component="apicurito-operator-metadata-container" \
+      com.redhat.component="fuse-apicurito-operator-metadata-container" \
       io.k8s.description="Operator which manages the lifecycle of the Apicurito application." \
       io.k8s.display-name="Red Hat Apicurito Operator" \
-      io.openshift.tags="fuse"
+      io.openshift.tags="fuse,API"
 `
-	m = fmt.Sprintf(m, channel, channel, c.SupportedOpenShiftVersions, version.Version)
+	m = fmt.Sprintf(m, name, channel, channel, c.SupportedOpenShiftVersions, fmt.Sprintf("%s.x", version.ShortVersion()))
 	out = []byte(m)
 	return
 }
 
 func buildAnnotation() (out []byte, err error) {
-	name := "apicurito-operator"
+	name := "fuse-apicurito"
 
 	channel := fmt.Sprintf("apicurito-%s.x", version.ShortVersion())
 
