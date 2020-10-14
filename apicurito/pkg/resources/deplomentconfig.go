@@ -38,6 +38,7 @@ func apicuritoDeployment(c *configuration.Config, a *v1alpha1.Apicurito) (dep re
 	var dm int32 = 420
 	deployLabels := map[string]string{
 		"app":           "apicurito",
+		"component":     fmt.Sprintf("%s-%s", a.Name, "ui"),
 		"com.company":   "Red_Hat",
 		"rht.prod_name": "Red_Hat_Integration",
 		"rht.prod_ver":  version.ShortVersion(),
@@ -135,6 +136,7 @@ func generatorDeployment(c *configuration.Config, a *v1alpha1.Apicurito) (dep re
 	// Define a new deployment
 	deployLabels := map[string]string{
 		"app":           "apicurito",
+		"component":     fmt.Sprintf("%s-%s", a.Name, "ui"),
 		"com.company":   "Red_Hat",
 		"rht.prod_name": "Red_Hat_Integration",
 		"rht.prod_ver":  version.ShortVersion(),
