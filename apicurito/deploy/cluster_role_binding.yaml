@@ -9,4 +9,4 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: apicurito
-    namespace: placeholder
+    namespace: apicurito
