@@ -170,7 +170,7 @@ func (r *ReconcileApicurito) Reconcile(request reconcile.Request) (reconcile.Res
 		routes := rs.Routes()
 		err = r.applyResources(apicurito, routes, reqLogger)
 		if err != nil {
-			reqLogger.Error(err, "failed to apply route resources")
+			reqLogger.Info("Apicurito CR resource changed in the meantime, requeue and rerun in 10 seconds", "err", err)
 			return reconcile.Result{
 				Requeue:      true,
 				RequeueAfter: 10 * time.Second,
@@ -193,7 +193,7 @@ func (r *ReconcileApicurito) Reconcile(request reconcile.Request) (reconcile.Res
 	}
 	err = r.applyResources(apicurito, res, reqLogger)
 	if err != nil {
-		reqLogger.Error(err, "failed to apply resources")
+		reqLogger.Info("Apicurito CR resource changed in the meantime, requeue and rerun in 10 seconds", "err", err)
 		return reconcile.Result{
 			Requeue:      true,
 			RequeueAfter: 10 * time.Second,
@@ -208,9 +208,6 @@ func (r *ReconcileApicurito) Reconcile(request reconcile.Request) (reconcile.Res
 
 func (r *ReconcileApicurito) applyResources(apicurito *v1alpha1.Apicurito, res []resource.KubernetesResource, logger logr.Logger) (err error) {
 	deployed, err := getDeployedResources(apicurito, r.client)
-	if err != nil {
-
-	}
 
 	requested := compare.NewMapBuilder().Add(res...).ResourceMap()
 	comparator := getComparator()
@@ -226,17 +223,17 @@ func (r *ReconcileApicurito) applyResources(apicurito *v1alpha1.Apicurito, res [
 
 		_, err := writer.AddResources(delta.Added)
 		if err != nil {
-			return fmt.Errorf("error AddResources: %s", err)
+			return fmt.Errorf("Apicurito CR changed: AddResources: %s", err)
 		}
 
 		_, err = writer.UpdateResources(deployed[resourceType], delta.Updated)
 		if err != nil {
-			return fmt.Errorf("error UpdateResources : %s", err)
+			return fmt.Errorf("Apicurito CR changed: UpdateResources : %s", err)
 		}
 
 		_, err = writer.RemoveResources(delta.Removed)
 		if err != nil {
-			return fmt.Errorf("error RemoveResources: %s", err)
+			return fmt.Errorf("Apicurito CR changed: RemoveResources: %s", err)
 		}
 
 	}
