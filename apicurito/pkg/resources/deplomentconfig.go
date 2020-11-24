@@ -186,6 +186,11 @@ func generatorDeployment(c *configuration.Config, a *v1alpha1.Apicurito) (dep re
 								Protocol:      corev1.ProtocolTCP,
 							},
 							{
+								ContainerPort: 8181,
+								Name:          "health",
+								Protocol:      corev1.ProtocolTCP,
+							},
+							{
 								ContainerPort: 9779,
 								Name:          "prometheus",
 								Protocol:      corev1.ProtocolTCP,
@@ -205,7 +210,7 @@ func generatorDeployment(c *configuration.Config, a *v1alpha1.Apicurito) (dep re
 							Handler: corev1.Handler{
 								HTTPGet: &corev1.HTTPGetAction{
 									Scheme: corev1.URISchemeHTTP,
-									Port:   intstr.FromInt(8181),
+									Port:   intstr.FromString("health"),
 									Path:   "/health",
 								}},
 						},
@@ -218,7 +223,7 @@ func generatorDeployment(c *configuration.Config, a *v1alpha1.Apicurito) (dep re
 							Handler: corev1.Handler{
 								HTTPGet: &corev1.HTTPGetAction{
 									Scheme: corev1.URISchemeHTTP,
-									Port:   intstr.FromInt(8181),
+									Port:   intstr.FromString("health"),
 									Path:   "/health",
 								}},
 						},
