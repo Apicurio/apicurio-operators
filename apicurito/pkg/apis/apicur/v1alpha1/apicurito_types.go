@@ -31,7 +31,6 @@ type ApicuritoSpec struct {
 	// Add custom validation using kubebuilder tags: https://book.kubebuilder.io/beyond_basics/generating_crd.html
 	Size int32 `json:"size"`
 
-	// +kubebuilder:validation:Pattern=.+:.+
 	Image string `json:"image"`
 }
 
