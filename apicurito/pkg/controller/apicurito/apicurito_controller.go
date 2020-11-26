@@ -165,7 +165,7 @@ func (r *ReconcileApicurito) Reconcile(request reconcile.Request) (reconcile.Res
 	// This is needed because ConfigMaps require the routes to be present and should run only once
 	// at startup
 	route := &routev1.Route{}
-	err = r.client.Get(context.TODO(), types.NamespacedName{Name: fmt.Sprintf("%s-service-generator", apicurito.Name), Namespace: apicurito.Namespace}, route)
+	err = r.client.Get(context.TODO(), types.NamespacedName{Name: fmt.Sprintf("%s-%s", apicurito.Name, "generator"), Namespace: apicurito.Namespace}, route)
 	if err != nil && errors.IsNotFound(err) {
 		routes := rs.Routes()
 		err = r.applyResources(apicurito, routes, reqLogger)

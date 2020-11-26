@@ -44,7 +44,7 @@ func apicuritoDeployment(c *configuration.Config, a *v1alpha1.Apicurito) (dep re
 		"rht.prod_ver":  version.ShortVersion(),
 		"rht.comp":      "Fuse",
 		"rht.comp_ver":  version.ShortVersion(),
-		"rht.subcomp":   fmt.Sprintf("%s-service-ui", a.Name),
+		"rht.subcomp":   fmt.Sprintf("%s-%s", a.Name, "ui"),
 		"rht.subcomp_t": "infrastructure",
 	}
 	dep = &appsv1.Deployment{
@@ -53,7 +53,7 @@ func apicuritoDeployment(c *configuration.Config, a *v1alpha1.Apicurito) (dep re
 			Kind:       "Deployment",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      fmt.Sprintf("%s-service-ui", a.Name),
+			Name:      fmt.Sprintf("%s-%s", a.Name, "ui"),
 			Namespace: a.Namespace,
 			OwnerReferences: []metav1.OwnerReference{
 				*metav1.NewControllerRef(a, schema.GroupVersionKind{
@@ -79,7 +79,7 @@ func apicuritoDeployment(c *configuration.Config, a *v1alpha1.Apicurito) (dep re
 					Containers: []corev1.Container{{
 						Image:           c.UiImage,
 						ImagePullPolicy: corev1.PullIfNotPresent,
-						Name:            fmt.Sprintf("%s-service-ui", a.Name),
+						Name:            fmt.Sprintf("%s-%s", a.Name, "ui"),
 						Ports: []corev1.ContainerPort{{
 							ContainerPort: 8080,
 							Name:          "api-port",
@@ -142,7 +142,7 @@ func generatorDeployment(c *configuration.Config, a *v1alpha1.Apicurito) (dep re
 		"rht.prod_ver":  version.ShortVersion(),
 		"rht.comp":      "Fuse",
 		"rht.comp_ver":  version.ShortVersion(),
-		"rht.subcomp":   fmt.Sprintf("%s-service-generator", a.Name),
+		"rht.subcomp":   fmt.Sprintf("%s-%s", a.Name, "generator"),
 		"rht.subcomp_t": "infrastructure",
 	}
 	dep = &appsv1.Deployment{
@@ -151,7 +151,7 @@ func generatorDeployment(c *configuration.Config, a *v1alpha1.Apicurito) (dep re
 			Kind:       "Deployment",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      fmt.Sprintf("%s-service-generator", a.Name),
+			Name:      fmt.Sprintf("%s-%s", a.Name, "generator"),
 			Namespace: a.Namespace,
 			OwnerReferences: []metav1.OwnerReference{
 				*metav1.NewControllerRef(a, schema.GroupVersionKind{
@@ -178,7 +178,7 @@ func generatorDeployment(c *configuration.Config, a *v1alpha1.Apicurito) (dep re
 					Containers: []corev1.Container{{
 						Image:           c.GeneratorImage,
 						ImagePullPolicy: corev1.PullIfNotPresent,
-						Name:            fmt.Sprintf("%s-service-generator", a.Name),
+						Name:            fmt.Sprintf("%s-%s", a.Name, "generator"),
 						Ports: []corev1.ContainerPort{
 							{
 								ContainerPort: 8080,

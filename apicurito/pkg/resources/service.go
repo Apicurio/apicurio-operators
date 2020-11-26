@@ -35,14 +35,14 @@ var labels = map[string]string{"app": "apicurito"}
 func apicuritoService(a *v1alpha1.Apicurito) (s resource.KubernetesResource) {
 
 	// Define new service
-	labels["component"] = fmt.Sprintf("%s-ui", a.Name)
+	labels["component"] = fmt.Sprintf("%s-%s", a.Name, "ui")
 	s = &corev1.Service{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "v1",
 			Kind:       "Service",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      fmt.Sprintf("%s-service-ui", a.Name),
+			Name:      fmt.Sprintf("%s-%s", a.Name, "ui"),
 			Namespace: a.Namespace,
 			Labels:    labels,
 			OwnerReferences: []metav1.OwnerReference{
@@ -78,7 +78,7 @@ func generatorService(a *v1alpha1.Apicurito) (s resource.KubernetesResource) {
 			Kind:       "Service",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      fmt.Sprintf("%s-service-generator", a.Name),
+			Name:      fmt.Sprintf("%s-%s", a.Name, "generator"),
 			Namespace: a.Namespace,
 			Labels:    labels,
 			OwnerReferences: []metav1.OwnerReference{
