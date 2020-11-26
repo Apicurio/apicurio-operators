@@ -9,9 +9,6 @@ else
        Q = @
 endif
 
-
-
-
 #export CGO_ENABLED:=0
 
 .PHONY: all

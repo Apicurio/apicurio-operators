@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/apicurio/apicurio-operators/apicurito/pkg/configuration"
+	"github.com/apicurio/apicurio-operators/apicurito/version"
 
 	monv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
 	consolev1 "github.com/openshift/api/console/v1"
@@ -35,8 +36,15 @@ func GetDeployment(operatorName, repository, context, imageName, tag, imagePullP
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
 					Labels: map[string]string{
-						"name": operatorName,
-						"app":  "apicurito",
+						"name":          operatorName,
+						"app":           "apicurito",
+						"com.company":   "Red_Hat",
+						"rht.prod_name": "Red_Hat_Integration",
+						"rht.prod_ver":  version.ShortVersion(),
+						"rht.comp":      "Fuse",
+						"rht.comp_ver":  version.ShortVersion(),
+						"rht.subcomp":   operatorName,
+						"rht.subcomp_t": "infrastructure",
 					},
 				},
 				Spec: corev1.PodSpec{
