@@ -28,14 +28,13 @@ import (
 )
 
 func generatorRoute(a *v1alpha1.Apicurito) (r resource.KubernetesResource) {
-
 	r = &routev1.Route{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Route",
 			APIVersion: routev1.SchemeGroupVersion.String(),
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      GetGeneratorRouteName(a),
+			Name:      fmt.Sprintf("%s-service-generator", a.Name),
 			Namespace: a.Namespace,
 			Labels:    labels,
 			OwnerReferences: []metav1.OwnerReference{
@@ -61,14 +60,13 @@ func generatorRoute(a *v1alpha1.Apicurito) (r resource.KubernetesResource) {
 }
 
 func apicuritoRoute(a *v1alpha1.Apicurito) (r resource.KubernetesResource) {
-
 	r = &routev1.Route{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Route",
 			APIVersion: routev1.SchemeGroupVersion.String(),
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      GetUIRouteName(a),
+			Name:      fmt.Sprintf("%s-service-ui", a.Name),
 			Namespace: a.Namespace,
 			Labels:    labels,
 			OwnerReferences: []metav1.OwnerReference{
@@ -93,9 +91,9 @@ func apicuritoRoute(a *v1alpha1.Apicurito) (r resource.KubernetesResource) {
 }
 
 func GetGeneratorRouteName(a *v1alpha1.Apicurito) string {
-	return fmt.Sprintf("%s-%s", a.Name, "generator")
+	return fmt.Sprintf("%s-service-generator", a.Name)
 }
 
 func GetUIRouteName(a *v1alpha1.Apicurito) string {
-	return fmt.Sprintf("%s-%s", a.Name, "ui")
+	return fmt.Sprintf("%s-service-ui", a.Name)
 }
