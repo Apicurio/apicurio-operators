@@ -29,9 +29,9 @@ import (
 
 func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenAPIDefinition {
 	return map[string]common.OpenAPIDefinition{
-		"github.com/apicurio/apicurio-operators/apicurito/pkg/apis/apicur/v1alpha1.Apicurito":       schema_pkg_apis_apicur_v1alpha1_Apicurito(ref),
-		"github.com/apicurio/apicurio-operators/apicurito/pkg/apis/apicur/v1alpha1.ApicuritoSpec":   schema_pkg_apis_apicur_v1alpha1_ApicuritoSpec(ref),
-		"github.com/apicurio/apicurio-operators/apicurito/pkg/apis/apicur/v1alpha1.ApicuritoStatus": schema_pkg_apis_apicur_v1alpha1_ApicuritoStatus(ref),
+		"github.com/jboss-fuse/apicurio-operators/apicurito/pkg/apis/apicur/v1alpha1.Apicurito":       schema_pkg_apis_apicur_v1alpha1_Apicurito(ref),
+		"github.com/jboss-fuse/apicurio-operators/apicurito/pkg/apis/apicur/v1alpha1.ApicuritoSpec":   schema_pkg_apis_apicur_v1alpha1_ApicuritoSpec(ref),
+		"github.com/jboss-fuse/apicurio-operators/apicurito/pkg/apis/apicur/v1alpha1.ApicuritoStatus": schema_pkg_apis_apicur_v1alpha1_ApicuritoStatus(ref),
 	}
 }
 
@@ -63,19 +63,19 @@ func schema_pkg_apis_apicur_v1alpha1_Apicurito(ref common.ReferenceCallback) com
 					},
 					"spec": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/apicurio/apicurio-operators/apicurito/pkg/apis/apicur/v1alpha1.ApicuritoSpec"),
+							Ref: ref("github.com/jboss-fuse/apicurio-operators/apicurito/pkg/apis/apicur/v1alpha1.ApicuritoSpec"),
 						},
 					},
 					"status": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/apicurio/apicurio-operators/apicurito/pkg/apis/apicur/v1alpha1.ApicuritoStatus"),
+							Ref: ref("github.com/jboss-fuse/apicurio-operators/apicurito/pkg/apis/apicur/v1alpha1.ApicuritoStatus"),
 						},
 					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"github.com/apicurio/apicurio-operators/apicurito/pkg/apis/apicur/v1alpha1.ApicuritoSpec", "github.com/apicurio/apicurio-operators/apicurito/pkg/apis/apicur/v1alpha1.ApicuritoStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
+			"github.com/jboss-fuse/apicurio-operators/apicurito/pkg/apis/apicur/v1alpha1.ApicuritoSpec", "github.com/jboss-fuse/apicurio-operators/apicurito/pkg/apis/apicur/v1alpha1.ApicuritoStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
 	}
 }
 
@@ -93,14 +93,8 @@ func schema_pkg_apis_apicur_v1alpha1_ApicuritoSpec(ref common.ReferenceCallback)
 							Format:      "int32",
 						},
 					},
-					"image": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
-						},
-					},
 				},
-				Required: []string{"size", "image"},
+				Required: []string{"size"},
 			},
 		},
 	}
