@@ -1,5 +1,5 @@
-kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
 metadata:
   name: apicurito
 roleRef:
@@ -9,4 +9,4 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: apicurito
-    namespace: placeholder
+    namespace: apicurito
