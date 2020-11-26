@@ -43,7 +43,7 @@ func apicuritoConfig(client client.Client, a *v1alpha1.Apicurito) (c resource.Ku
 	// Fetch the route host from generator
 	r := &routev1.Route{}
 	if err = client.Get(context.TODO(), types.NamespacedName{
-		Name:      fmt.Sprintf("%s-%s", a.Name, "generator"),
+		Name:      fmt.Sprintf("%s-service-generator", a.Name),
 		Namespace: a.Namespace}, r); err != nil {
 		return c, err
 	}
@@ -58,7 +58,7 @@ func apicuritoConfig(client client.Client, a *v1alpha1.Apicurito) (c resource.Ku
 			APIVersion: "v1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      fmt.Sprintf("%s-%s", a.Name, "ui"),
+			Name:      fmt.Sprintf("%s-ui", a.Name),
 			Namespace: a.Namespace,
 			Labels:    labels,
 			OwnerReferences: []metav1.OwnerReference{
