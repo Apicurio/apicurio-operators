@@ -208,11 +208,10 @@ func generatorDeployment(c *configuration.Config, a *v1alpha1.Apicurito) (dep re
 							SuccessThreshold:    1,
 							TimeoutSeconds:      1,
 							Handler: corev1.Handler{
-								HTTPGet: &corev1.HTTPGetAction{
-									Scheme: corev1.URISchemeHTTP,
-									Port:   intstr.FromString("health"),
-									Path:   "/health",
-								}},
+								TCPSocket: &corev1.TCPSocketAction{
+									Port: intstr.FromString("http"),
+								},
+							},
 						},
 						ReadinessProbe: &corev1.Probe{
 							FailureThreshold:    3,
@@ -221,11 +220,10 @@ func generatorDeployment(c *configuration.Config, a *v1alpha1.Apicurito) (dep re
 							SuccessThreshold:    1,
 							TimeoutSeconds:      1,
 							Handler: corev1.Handler{
-								HTTPGet: &corev1.HTTPGetAction{
-									Scheme: corev1.URISchemeHTTP,
-									Port:   intstr.FromString("health"),
-									Path:   "/health",
-								}},
+								TCPSocket: &corev1.TCPSocketAction{
+									Port: intstr.FromString("http"),
+								},
+							},
 						},
 					}},
 				},
