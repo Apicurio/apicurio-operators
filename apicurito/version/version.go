@@ -3,7 +3,7 @@ package version
 import "strings"
 
 var (
-	Version      = "7.8.0"
+	Version      = "7.9.0"
 	PriorVersion = "0.2.0"
 )
 
