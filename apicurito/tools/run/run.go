@@ -22,7 +22,6 @@ import (
 	oimagev1 "github.com/openshift/api/image/v1"
 	csvv1 "github.com/operator-framework/operator-lifecycle-manager/pkg/api/apis/operators/v1alpha1"
 	olmversion "github.com/operator-framework/operator-lifecycle-manager/pkg/lib/version"
-	"github.com/tidwall/sjson"
 	"gopkg.in/yaml.v2"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -45,13 +44,13 @@ var (
 	maintainer = "Apicurito Project"
 	csv        = csvSetting{
 
-		Name:         "fuse-apicurito",
-		DisplayName:  "Red Hat Apicurito Operator",
+		Name:         "apicurito",
+		DisplayName:  "Apicurito Operator",
 		OperatorName: "fuse-apicurito",
 		CsvDir:       "apicurito-operator",
-		Registry:     "registry.redhat.io",
-		Context:      "fuse7",
-		ImageName:    "fuse-apicurito-rhel7-operator",
+		Registry:     "quay.io",
+		Context:      "apicurio",
+		ImageName:    "apicurito-operator",
 		Tag:          constants.Apicurito16ImageTag,
 	}
 )
@@ -191,16 +190,11 @@ func Run() error {
 		return err
 	}
 
-	imageName, _, _ := config.GetImage(deployment.Spec.Template.Spec.Containers[0].Image)
-	relatedImages := []image{}
-
 	templateStruct.Annotations["certified"] = "false"
 	deployFile := path + "operator.yaml"
 	createFile(deployFile, deployment)
 	roleFile := path + "role.yaml"
 	createFile(roleFile, role)
-
-	relatedImages = append(relatedImages, image{Name: imageName, Image: deployment.Spec.Template.Spec.Containers[0].Image})
 
 	imageRef := constants.ImageRef{
 		TypeMeta: metav1.TypeMeta{
@@ -230,51 +224,8 @@ func Run() error {
 		},
 	})
 
-	relatedImages = append(relatedImages, getRelatedImage(constants.Apicurito16ImageURL))
-	relatedImages = append(relatedImages, getRelatedImage(constants.Generator16ImageURL))
-
-	if GetBoolEnv("DIGESTS") {
-
-		for _, tagRef := range imageRef.Spec.Tags {
-
-			if _, ok := imageShaMap[tagRef.From.Name]; !ok {
-				imageShaMap[tagRef.From.Name] = ""
-				imageName, imageTag, imageContext := config.GetImage(tagRef.From.Name)
-				repo := imageContext + "/" + imageName
-
-				digests, err := RetriveFromRedHatIO(repo, imageTag)
-				if err != nil {
-					fmt.Fprintln(os.Stderr, err)
-				}
-				if len(digests) > 1 {
-					imageShaMap[tagRef.From.Name] = strings.ReplaceAll(tagRef.From.Name, ":"+imageTag, "@"+digests[len(digests)-1])
-				}
-			}
-		}
-	}
-
-	//not sure if we required mage-references file in the future So comment out for now.
-
-	//imageFile := "deploy/olm-catalog/" + csv.CsvDir + "/" + opMajor + "." + opMinor + "." + opMicro + "/" + "image-references"
-	//createFile(imageFile, imageRef)
-
 	var templateInterface interface{}
-	if len(relatedImages) > 0 {
-		templateJSON, err := json.Marshal(templateStruct)
-		if err != nil {
-			fmt.Println(err)
-		}
-		result, err := sjson.SetBytes(templateJSON, "spec.relatedImages", relatedImages)
-		if err != nil {
-			fmt.Println(err)
-
-		}
-		if err = json.Unmarshal(result, &templateInterface); err != nil {
-			fmt.Println(err)
-		}
-	} else {
-		templateInterface = templateStruct
-	}
+	templateInterface = templateStruct
 
 	// find and replace images with SHAs where necessary
 	templateByte, err := json.Marshal(templateInterface)

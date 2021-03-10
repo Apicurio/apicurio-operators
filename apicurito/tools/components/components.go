@@ -4,7 +4,6 @@ import (
 	"strings"
 
 	"github.com/apicurio/apicurio-operators/apicurito/pkg/configuration"
-	"github.com/apicurio/apicurio-operators/apicurito/version"
 
 	monv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
 	consolev1 "github.com/openshift/api/console/v1"
@@ -36,15 +35,8 @@ func GetDeployment(operatorName, repository, context, imageName, tag, imagePullP
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
 					Labels: map[string]string{
-						"name":          operatorName,
-						"app":           "apicurito",
-						"com.company":   "Red_Hat",
-						"rht.prod_name": "Red_Hat_Integration",
-						"rht.prod_ver":  version.ShortVersion(),
-						"rht.comp":      "Fuse",
-						"rht.comp_ver":  version.ShortVersion(),
-						"rht.subcomp":   operatorName,
-						"rht.subcomp_t": "infrastructure",
+						"name": operatorName,
+						"app":  "apicurito",
 					},
 				},
 				Spec: corev1.PodSpec{
@@ -63,18 +55,6 @@ func GetDeployment(operatorName, repository, context, imageName, tag, imagePullP
 											FieldPath: "metadata.namespace",
 										},
 									},
-								},
-								{
-									Name:  "RELATED_IMAGE_APICURITO_OPERATOR",
-									Value: image,
-								},
-								{
-									Name:  "RELATED_IMAGE_APICURITO",
-									Value: cfg.UiImage,
-								},
-								{
-									Name:  "RELATED_IMAGE_GENERATOR",
-									Value: cfg.GeneratorImage,
 								},
 								{
 									Name: "POD_NAME",
@@ -127,6 +107,15 @@ func GetRole(operatorName string) *rbacv1.Role {
 			},
 			{
 				APIGroups: []string{
+					"",
+				},
+				Resources: []string{
+					"namespaces",
+				},
+				Verbs: []string{"get"},
+			},
+			{
+				APIGroups: []string{
 					"apps",
 				},
 				Resources: []string{
@@ -137,7 +126,19 @@ func GetRole(operatorName string) *rbacv1.Role {
 				},
 				Verbs: []string{"*"},
 			},
-
+			{
+				APIGroups: []string{
+					"apps.openshift.io",
+					"image.openshift.io",
+					"route.openshift.io",
+				},
+				Resources: []string{
+					"deploymentconfigs",
+					"imagestreams",
+					"routes",
+				},
+				Verbs: []string{"*"},
+			},
 			{
 				APIGroups: []string{
 					monv1.SchemeGroupVersion.Group,
