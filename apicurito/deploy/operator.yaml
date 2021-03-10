@@ -14,14 +14,7 @@ spec:
     metadata:
       labels:
         app: apicurito
-        com.company: Red_Hat
         name: fuse-apicurito
-        rht.comp: Fuse
-        rht.comp_ver: "7.8"
-        rht.prod_name: Red_Hat_Integration
-        rht.prod_ver: "7.8"
-        rht.subcomp: fuse-apicurito
-        rht.subcomp_t: infrastructure
     spec:
       containers:
       - env:
@@ -29,19 +22,13 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
-        - name: RELATED_IMAGE_APICURITO_OPERATOR
-          value: registry.redhat.io/fuse7/fuse-apicurito-rhel7-operator:1.8
-        - name: RELATED_IMAGE_APICURITO
-          value: apicurio/apicurito-ui:1.1.1
-        - name: RELATED_IMAGE_GENERATOR
-          value: apicurio/fuse-apicurito-generator:latest
         - name: POD_NAME
           valueFrom:
             fieldRef:
               fieldPath: metadata.name
         - name: OPERATOR_NAME
           value: fuse-apicurito
-        image: registry.redhat.io/fuse7/fuse-apicurito-rhel7-operator:1.8
+        image: quay.io/apicurio/apicurito-operator:latest
         imagePullPolicy: Always
         name: fuse-apicurito
         resources: {}

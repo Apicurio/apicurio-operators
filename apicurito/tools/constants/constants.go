@@ -6,16 +6,16 @@ import (
 )
 
 const (
-	RedHatImageRegistry = "registry.redhat.io"
-	Apicurito16Image    = "fuse-apicurito"
+	RedHatImageRegistry = "quay.io"
+	Apicurito16Image    = "apicurito"
 
-	Apicurito16ImageTag = "1.8"
-	Apicurito16ImageURL = RedHatImageRegistry + "/fuse7/" + Apicurito16Image + ":" + Apicurito16ImageTag
+	Apicurito16ImageTag = "latest"
+	Apicurito16ImageURL = RedHatImageRegistry + "/apicurio/" + Apicurito16Image + ":" + Apicurito16ImageTag
 
-	Generator16Image    = "fuse-apicurito-generator"
-	Generator16ImageURL = RedHatImageRegistry + "/fuse7/" + Generator16Image + ":" + Apicurito16ImageTag
+	Generator16Image    = "apicurito-generator"
+	Generator16ImageURL = RedHatImageRegistry + "/apicurio/" + Generator16Image + ":" + Apicurito16ImageTag
 
-	Apicurito16Component = "fuse-apicurito-openshift-container"
+	Apicurito16Component = "apicurito-openshift-container"
 )
 
 type ImageEnv struct {

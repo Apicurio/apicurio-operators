@@ -53,12 +53,9 @@ apicurito-service        3         3         3            3           1m
 # Upgrade apicurito
 In order to upgrade apicurito, you need to install the desired version of the operator. Once the newer version is installed, an upgrade of the operand will kick in.
 
-# Upgrade apicurito
-In order to upgrade apicurito, you need to install the desired version of the operator. Once the newer version is installed, an upgrade of the operand will kick in.
-
 ## Building the operator
 
-In the apicurito directory issue the following command: 
+In the apicurito directory issue the following command:
 
 ```bash
 make
@@ -69,7 +66,7 @@ make
 e.g.
 
 ```bash
-docker push quay.io/apicurito-operator/:<version>
+docker push quay.io/<context>/apicurito-operator/:<version>
 ```
 
 
@@ -77,7 +74,3 @@ docker push quay.io/apicurito-operator/:<version>
 
 ```bash
 make csv
-
-# OR
-# w/ sha lookup/replacement against registry.redhat.io
-DIGESTS=true REDHATIO_TOKEN="<username>:<password>"  make csv
