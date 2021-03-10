@@ -136,12 +136,28 @@ spec:
           verbs:
           - '*'
         - apiGroups:
+          - ""
+          resources:
+          - namespaces
+          verbs:
+          - get
+        - apiGroups:
           - apps
           resources:
           - deployments
           - daemonsets
           - replicasets
           - statefulsets
+          verbs:
+          - '*'
+        - apiGroups:
+          - apps.openshift.io
+          - image.openshift.io
+          - route.openshift.io
+          resources:
+          - deploymentconfigs
+          - imagestreams
+          - routes
           verbs:
           - '*'
         - apiGroups:
