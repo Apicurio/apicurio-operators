@@ -1,0 +1,6 @@
+resources:
+- cluster_role.gen.yaml
+- cluster_role_binding.gen.yaml
+- role.gen.yaml
+- role_binding.gen.yaml
+- role_app_user.yaml
