@@ -17,8 +17,8 @@ metadata:
     capabilities: Seamless Upgrades
     categories: Integration & Delivery
     certified: "false"
-    containerImage: registry.redhat.io/fuse7/fuse-apicurito-rhel7-operator:1.8
-    createdAt: "2021-02-23 15:21:16"
+    containerImage: registry.redhat.io/fuse7/fuse-apicurito-rhel7-operator:1.9
+    createdAt: "2021-03-10 18:15:06"
     description: Manages the installation and upgrades of apicurito, a small/minimal
       version of Apicurio
     repository: https://github.com/Apicurio/apicurio-operators/tree/master/apicurito
@@ -104,7 +104,7 @@ spec:
                     fieldRef:
                       fieldPath: metadata.namespace
                 - name: RELATED_IMAGE_APICURITO_OPERATOR
-                  value: registry.redhat.io/fuse7/fuse-apicurito-rhel7-operator:1.8
+                  value: registry.redhat.io/fuse7/fuse-apicurito-rhel7-operator:1.9
                 - name: RELATED_IMAGE_APICURITO
                   value: apicurio/apicurito-ui:1.1.1
                 - name: RELATED_IMAGE_GENERATOR
@@ -115,7 +115,7 @@ spec:
                       fieldPath: metadata.name
                 - name: OPERATOR_NAME
                   value: fuse-apicurito
-                image: registry.redhat.io/fuse7/fuse-apicurito-rhel7-operator:1.8
+                image: registry.redhat.io/fuse7/fuse-apicurito-rhel7-operator:1.9
                 imagePullPolicy: Always
                 name: fuse-apicurito
                 resources: {}
@@ -220,11 +220,11 @@ spec:
   provider:
     name: Red Hat
   relatedImages:
-  - image: registry.redhat.io/fuse7/fuse-apicurito-rhel7-operator:1.8
+  - image: registry.redhat.io/fuse7/fuse-apicurito-rhel7-operator:1.9
     name: fuse-apicurito-rhel7-operator
-  - image: registry.redhat.io/fuse7/fuse-apicurito:1.8
+  - image: registry.redhat.io/fuse7/fuse-apicurito:1.9
     name: fuse-apicurito
-  - image: registry.redhat.io/fuse7/fuse-apicurito-generator:1.8
+  - image: registry.redhat.io/fuse7/fuse-apicurito-generator:1.9
     name: fuse-apicurito-generator
   replaces: fuse-apicurito.v0.2.0
   selector:
