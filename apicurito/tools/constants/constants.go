@@ -9,7 +9,7 @@ const (
 	RedHatImageRegistry = "registry.redhat.io"
 	Apicurito16Image    = "fuse-apicurito"
 
-	Apicurito16ImageTag = "1.8"
+	Apicurito16ImageTag = "1.9"
 	Apicurito16ImageURL = RedHatImageRegistry + "/fuse7/" + Apicurito16Image + ":" + Apicurito16ImageTag
 
 	Generator16Image    = "fuse-apicurito-generator"

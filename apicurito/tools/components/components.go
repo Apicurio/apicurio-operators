@@ -127,6 +127,15 @@ func GetRole(operatorName string) *rbacv1.Role {
 			},
 			{
 				APIGroups: []string{
+					"",
+				},
+				Resources: []string{
+					"namespaces",
+				},
+				Verbs: []string{"get"},
+			},
+			{
+				APIGroups: []string{
 					"apps",
 				},
 				Resources: []string{
@@ -137,7 +146,19 @@ func GetRole(operatorName string) *rbacv1.Role {
 				},
 				Verbs: []string{"*"},
 			},
-
+			{
+				APIGroups: []string{
+					"apps.openshift.io",
+					"image.openshift.io",
+					"route.openshift.io",
+				},
+				Resources: []string{
+					"deploymentconfigs",
+					"imagestreams",
+					"routes",
+				},
+				Verbs: []string{"*"},
+			},
 			{
 				APIGroups: []string{
 					monv1.SchemeGroupVersion.Group,
