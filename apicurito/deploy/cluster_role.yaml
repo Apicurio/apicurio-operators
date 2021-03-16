@@ -14,3 +14,9 @@ rules:
   - list
   - update
   - delete
+- apiGroups:
+  - apps
+  resources:
+  - deployments/finalizers
+  verbs:
+  - update

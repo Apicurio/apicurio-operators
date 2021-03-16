@@ -9,6 +9,7 @@ DEPLOYMENT := ./deployment.gen
 SA := ./service_account.gen
 
 # User customisable variables
+SYNC ?= true
 IMAGE ?= registry.redhat.io/fuse7/fuse-apicurito-rhel7-operator
 NAMESPACE ?= apicurito
 TAG ?= 1.9
@@ -20,10 +21,12 @@ TAG ?= 1.9
 # Copy the deploy template from the deploy directory
 #
 sync:
+ifeq ($(SYNC), true)
 	cp $(ASSETS)/operator.yaml $(DEPLOYMENT).$(TMPL)
-	sed -i '/ RELATED_IMAGE_APICURITO_OPERATOR/,/RELATED_IMAGE_APICURITO/s~value: .*~value: $(IMAGE_VAR):$(TAG_VAR)~' $(DEPLOYMENT).$(TMPL)
+	sed -i '/ RELATED_IMAGE_APICURITO_OPERATOR/,/ name:/s~value: .*~value: $(IMAGE_VAR):$(TAG_VAR)~' $(DEPLOYMENT).$(TMPL)
 	sed -i 's~image: .*~image: $(IMAGE_VAR):$(TAG_VAR)~' $(DEPLOYMENT).$(TMPL)
 	cp $(ASSETS)/service_account.yaml $(SA).$(TMPL)
+endif
 # end-sync
 
 init: sync
