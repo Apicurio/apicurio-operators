@@ -66,7 +66,7 @@ func apicuritoDeployment(c *configuration.Config, a *v1alpha1.Apicurito) (dep re
 		Spec: appsv1.DeploymentSpec{
 			Replicas: &a.Spec.Size,
 			Selector: &metav1.LabelSelector{
-				MatchLabels: deployLabels,
+				MatchLabels: labels,
 			},
 			Strategy: appsv1.DeploymentStrategy{
 				Type: appsv1.RollingUpdateDeploymentStrategyType,
@@ -165,7 +165,7 @@ func generatorDeployment(c *configuration.Config, a *v1alpha1.Apicurito) (dep re
 		Spec: appsv1.DeploymentSpec{
 			Replicas: &a.Spec.Size,
 			Selector: &metav1.LabelSelector{
-				MatchLabels: deployLabels,
+				MatchLabels: labels,
 			},
 			Strategy: appsv1.DeploymentStrategy{
 				Type: appsv1.RollingUpdateDeploymentStrategyType,
