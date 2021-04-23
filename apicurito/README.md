@@ -9,17 +9,21 @@ The aicurito operator can:
 
 ## Installing the operator
 
-Before running the operator, the CRD must be registered with the Kubernetes apiserver:
+Before running the operator, the CRD must be registered with the Kubernetes apiserver and RBAC permissions configured:
 ```
-$ kubectl create -f deploy/crds/apicur_v1alpha1_apicurito_crd.yaml
+# Execute as a cluster-admin equivalent account
+$ make -C config setup
 ```
 
-Setup RBAC and deploy the apicurito-operator:
+Deploy the apicurito-operator:
 ```
-$ kubectl create -f deploy/service_account.yaml
-$ kubectl create -f deploy/role.yaml
-$ kubectl create -f deploy/role_binding.yaml
-$ kubectl create -f deploy/operator.yaml
+$ make -C config operator
+
+#
+# Alternative:
+# To modify the image and tag being used for the operator
+#
+$ IMAGE=<image url> TAG=<tag version> make -C config operator
 ```
 
 Verify that the apicurito-operator is up and running:
@@ -30,9 +34,9 @@ apicurito-operator       1         1         1            1           1m
 ```
 
 ## Start an apicurito deployment
-Edit the example Apicurito CR at deploy/crds/apicur_v1alpha1_apicurito_cr.yaml:
+Edit the example Apicurito CR at config/samples/apicur_v1alpha1_apicurito_cr.yaml:
 ```
-$ cat deploy/crds/apicur_v1alpha1_apicurito_cr.yaml
+$ cat config/samples/apicur_v1alpha1_apicurito_cr.yaml
 apiVersion: apicur.io/v1alpha1
 kind: Apicurito
 metadata:
@@ -40,7 +44,7 @@ metadata:
 spec:
   size: 3
 
-$ kubectl apply -f deploy/crds/apicur_v1alpha1_apicurito_cr.yaml
+$ make -C config app
 ```
 Ensure that the apicurito-operator creates the deployment for the Apicurito CR:
 ```
@@ -53,12 +57,9 @@ apicurito-service        3         3         3            3           1m
 # Upgrade apicurito
 In order to upgrade apicurito, you need to install the desired version of the operator. Once the newer version is installed, an upgrade of the operand will kick in.
 
-# Upgrade apicurito
-In order to upgrade apicurito, you need to install the desired version of the operator. Once the newer version is installed, an upgrade of the operand will kick in.
-
 ## Building the operator
 
-In the apicurito directory issue the following command: 
+In the apicurito directory issue the following command:
 
 ```bash
 make
@@ -73,10 +74,10 @@ docker push quay.io/apicurito-operator/:<version>
 ```
 
 
-## CSV Generation
+## CSV Bundle Generation
 
 ```bash
-make csv
+make -C config bundle
 
 # OR
 # w/ sha lookup/replacement against registry.redhat.io

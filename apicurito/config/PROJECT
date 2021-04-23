@@ -1,0 +1,11 @@
+domain: apicur.io
+layout: go.kubebuilder.io/v2
+projectName: fuse-apicurito
+repo: github.com/jboss-fuse/apicurio-operators
+resources:
+- group: apicur.io
+  kind: Apicurito
+  version: v1alpha1
+version: "3"
+plugins:
+  go.sdk.operatorframework.io/v2-alpha: {}

@@ -1,3 +1,0 @@
-resources:
-- deployment.gen.yaml
-- service_account.gen.yaml

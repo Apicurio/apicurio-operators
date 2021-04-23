@@ -1,0 +1,4 @@
+bases:
+- ../manager
+commonLabels:
+  app: apicurito
