@@ -9,17 +9,27 @@ The aicurito operator can:
 
 ## Installing the operator
 
-Before running the operator, the CRD must be registered with the Kubernetes apiserver:
+Before running the operator, the CRD must be registered with the Kubernetes apiserver and RBAC permissions configured:
 ```
-$ kubectl create -f deploy/crds/apicur_v1alpha1_apicurito_crd.yaml
+# Execute as a cluster-admin equivalent account
+$ make -C config setup
 ```
 
-Setup RBAC and deploy the apicurito-operator:
+If attempting to install this on Openshift 3.11 or equivalent then the CustomResourceDefinition may not
+be available. Therefore, the env var LEGACY=true should be used:
 ```
-$ kubectl create -f deploy/service_account.yaml
-$ kubectl create -f deploy/role.yaml
-$ kubectl create -f deploy/role_binding.yaml
-$ kubectl create -f deploy/operator.yaml
+$ LEGACY=true make -C config setup
+```
+
+Deploy the apicurito-operator:
+```
+$ make -C config operator
+
+#
+# Alternative:
+# To modify the image and tag being used for the operator
+#
+$ IMAGE=<image url> TAG=<tag version> make -C config operator
 ```
 
 Verify that the apicurito-operator is up and running:
@@ -30,9 +40,9 @@ apicurito-operator       1         1         1            1           1m
 ```
 
 ## Start an apicurito deployment
-Edit the example Apicurito CR at deploy/crds/apicur_v1alpha1_apicurito_cr.yaml:
+Edit the example Apicurito CR at config/samples/apicur_v1alpha1_apicurito_cr.yaml:
 ```
-$ cat deploy/crds/apicur_v1alpha1_apicurito_cr.yaml
+$ cat config/samples/apicur_v1alpha1_apicurito_cr.yaml
 apiVersion: apicur.io/v1alpha1
 kind: Apicurito
 metadata:
@@ -40,7 +50,7 @@ metadata:
 spec:
   size: 3
 
-$ kubectl apply -f deploy/crds/apicur_v1alpha1_apicurito_cr.yaml
+$ make -C config app
 ```
 Ensure that the apicurito-operator creates the deployment for the Apicurito CR:
 ```
@@ -70,7 +80,7 @@ docker push quay.io/<context>/apicurito-operator/:<version>
 ```
 
 
-## CSV Generation
+## CSV Bundle Generation
 
 ```bash
-make csv
+make -C config bundle

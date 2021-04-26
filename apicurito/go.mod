@@ -20,7 +20,7 @@ require (
 	github.com/spf13/cobra v0.0.5
 	github.com/stretchr/testify v1.4.0
 	github.com/tidwall/gjson v1.6.0 // indirect
-	github.com/tidwall/sjson v1.0.4
+	github.com/tidwall/sjson v1.0.4 // indirect
 	gopkg.in/yaml.v2 v2.2.8
 	k8s.io/api v0.17.2
 	k8s.io/apiextensions-apiserver v0.17.0 // indirect

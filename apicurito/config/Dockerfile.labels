@@ -1,0 +1,4 @@
+
+# Red Hat Openshift Labels
+LABEL com.redhat.delivery.operator.bundle=true
+LABEL com.redhat.openshift.versions="v4.6"

@@ -8,7 +8,14 @@ if [[ -z ${CI} ]]; then
         echo "skipping go openapi generation"
     fi
 
-    operator-sdk generate k8s
-    operator-sdk generate crds
+    osdk_version=$(operator-sdk version | sed -n 's/.*version: "v\([^"]*\)".*/\1/p')
+    if [[ ${osdk_version} == 0.* ]]; then
+      echo "operator-sdk >= 1.0.0 required. Please upgrade ..."
+      exit 1
+    else
+      # Calls the config/Makefile which in turn uses controller-gen
+      # As described by the operator-sdk documentation
+      make -C config generate
+    fi
 fi
 go vet ./...

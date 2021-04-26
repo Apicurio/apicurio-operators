@@ -1,0 +1,5 @@
+bases:
+- ../operator
+- ../samples
+commonLabels:
+  app: apicurito

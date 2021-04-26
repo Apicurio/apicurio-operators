@@ -1,15 +1,14 @@
+
+#
+# Include the main common Makefile containing
+# basic common recipes and vars
+#
+include config/common/Makefile
+
 # kernel-style V=1 build verbosity
 ifeq ("$(origin V)", "command line")
        BUILD_VERBOSE = $(V)
 endif
-
-ifeq ($(BUILD_VERBOSE),1)
-       Q =
-else
-       Q = @
-endif
-
-#export CGO_ENABLED:=0
 
 .PHONY: all
 all: build
@@ -17,14 +16,6 @@ all: build
 .PHONY: format
 format:
 	./scripts/go-fmt.sh
-
-.PHONY: go-generate
-go-generate: dep
-	$(Q)go generate ./...
-
-.PHONY: sdk-generate
-sdk-generate: dep
-	operator-sdk generate k8s
 
 .PHONY: vet
 vet:
@@ -42,13 +33,9 @@ lint:
 
 .PHONY: build
 build:
-	./scripts/go-build.sh
+	IMAGE=$(IMAGE) TAG=$(TAG) ./scripts/go-build.sh
 
 
 .PHONY: clean
 clean:
 	rm -rf build/_output
-
-.PHONY: csv
-csv:
-	./scripts/go-csv.sh
