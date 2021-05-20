@@ -25,7 +25,6 @@ import (
 
 	"github.com/apicurio/apicurio-operators/apicurito/pkg/apis/apicur/v1alpha1"
 	"github.com/apicurio/apicurio-operators/apicurito/pkg/configuration"
-	"github.com/apicurio/apicurio-operators/apicurito/version"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -36,24 +35,15 @@ import (
 func apicuritoDeployment(c *configuration.Config, a *v1alpha1.Apicurito) (dep resource.KubernetesResource) {
 	// Define a new deployment
 	var dm int32 = 420
-	deployLabels := map[string]string{
-		"app":           "apicurito",
-		"component":     fmt.Sprintf("%s-%s", a.Name, "ui"),
-		"com.company":   "Red_Hat",
-		"rht.prod_name": "Red_Hat_Integration",
-		"rht.prod_ver":  version.ShortVersion(),
-		"rht.comp":      "Fuse",
-		"rht.comp_ver":  version.ShortVersion(),
-		"rht.subcomp":   fmt.Sprintf("%s-%s", a.Name, "ui"),
-		"rht.subcomp_t": "infrastructure",
-	}
+	name := fmt.Sprintf("%s-%s", a.Name, "ui")
+	deployLabels := labelComponent(name)
 	dep = &appsv1.Deployment{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "apps/v1",
 			Kind:       "Deployment",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      fmt.Sprintf("%s-%s", a.Name, "ui"),
+			Name:      name,
 			Namespace: a.Namespace,
 			OwnerReferences: []metav1.OwnerReference{
 				*metav1.NewControllerRef(a, schema.GroupVersionKind{
@@ -66,7 +56,7 @@ func apicuritoDeployment(c *configuration.Config, a *v1alpha1.Apicurito) (dep re
 		Spec: appsv1.DeploymentSpec{
 			Replicas: &a.Spec.Size,
 			Selector: &metav1.LabelSelector{
-				MatchLabels: labels,
+				MatchLabels: deployLabels,
 			},
 			Strategy: appsv1.DeploymentStrategy{
 				Type: appsv1.RollingUpdateDeploymentStrategyType,
@@ -79,7 +69,7 @@ func apicuritoDeployment(c *configuration.Config, a *v1alpha1.Apicurito) (dep re
 					Containers: []corev1.Container{{
 						Image:           c.UiImage,
 						ImagePullPolicy: corev1.PullIfNotPresent,
-						Name:            fmt.Sprintf("%s-%s", a.Name, "ui"),
+						Name:            name,
 						Ports: []corev1.ContainerPort{{
 							ContainerPort: 8080,
 							Name:          "api-port",
@@ -105,18 +95,18 @@ func apicuritoDeployment(c *configuration.Config, a *v1alpha1.Apicurito) (dep re
 						},
 						VolumeMounts: []corev1.VolumeMount{
 							{
-								Name:      fmt.Sprintf("%s-%s", a.Name, "ui"),
+								Name:      name,
 								MountPath: "/html/config",
 							},
 						},
 					}},
 					Volumes: []corev1.Volume{
 						{
-							Name: fmt.Sprintf("%s-%s", a.Name, "ui"),
+							Name: name,
 							VolumeSource: corev1.VolumeSource{
 								ConfigMap: &corev1.ConfigMapVolumeSource{
 									LocalObjectReference: corev1.LocalObjectReference{
-										Name: fmt.Sprintf("%s-%s", a.Name, "ui"),
+										Name: name,
 									},
 									DefaultMode: &dm,
 								},
@@ -134,24 +124,15 @@ func apicuritoDeployment(c *configuration.Config, a *v1alpha1.Apicurito) (dep re
 // Creates and returns a generator Deployment object
 func generatorDeployment(c *configuration.Config, a *v1alpha1.Apicurito) (dep resource.KubernetesResource) {
 	// Define a new deployment
-	deployLabels := map[string]string{
-		"app":           "apicurito",
-		"component":     fmt.Sprintf("%s-%s", a.Name, "ui"),
-		"com.company":   "Red_Hat",
-		"rht.prod_name": "Red_Hat_Integration",
-		"rht.prod_ver":  version.ShortVersion(),
-		"rht.comp":      "Fuse",
-		"rht.comp_ver":  version.ShortVersion(),
-		"rht.subcomp":   fmt.Sprintf("%s-%s", a.Name, "generator"),
-		"rht.subcomp_t": "infrastructure",
-	}
+	name := fmt.Sprintf("%s-%s", a.Name, "generator")
+	deployLabels := labelComponent(name)
 	dep = &appsv1.Deployment{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "apps/v1",
 			Kind:       "Deployment",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      fmt.Sprintf("%s-%s", a.Name, "generator"),
+			Name:      name,
 			Namespace: a.Namespace,
 			OwnerReferences: []metav1.OwnerReference{
 				*metav1.NewControllerRef(a, schema.GroupVersionKind{
@@ -165,7 +146,7 @@ func generatorDeployment(c *configuration.Config, a *v1alpha1.Apicurito) (dep re
 		Spec: appsv1.DeploymentSpec{
 			Replicas: &a.Spec.Size,
 			Selector: &metav1.LabelSelector{
-				MatchLabels: labels,
+				MatchLabels: deployLabels,
 			},
 			Strategy: appsv1.DeploymentStrategy{
 				Type: appsv1.RollingUpdateDeploymentStrategyType,
@@ -178,7 +159,7 @@ func generatorDeployment(c *configuration.Config, a *v1alpha1.Apicurito) (dep re
 					Containers: []corev1.Container{{
 						Image:           c.GeneratorImage,
 						ImagePullPolicy: corev1.PullIfNotPresent,
-						Name:            fmt.Sprintf("%s-%s", a.Name, "generator"),
+						Name:            name,
 						Ports: []corev1.ContainerPort{
 							{
 								ContainerPort: 8080,
