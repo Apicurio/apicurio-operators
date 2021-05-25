@@ -35,16 +35,16 @@ var labels = map[string]string{"app": "apicurito"}
 func apicuritoService(a *v1alpha1.Apicurito) (s resource.KubernetesResource) {
 
 	// Define new service
-	labels["component"] = fmt.Sprintf("%s-%s", a.Name, "ui")
+	name := fmt.Sprintf("%s-%s", a.Name, "ui")
 	s = &corev1.Service{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "v1",
 			Kind:       "Service",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      fmt.Sprintf("%s-%s", a.Name, "ui"),
+			Name:      name,
 			Namespace: a.Namespace,
-			Labels:    labels,
+			Labels:    labelComponent(name),
 			OwnerReferences: []metav1.OwnerReference{
 				*metav1.NewControllerRef(a, schema.GroupVersionKind{
 					Group:   v1alpha1.SchemeGroupVersion.Group,
@@ -55,7 +55,7 @@ func apicuritoService(a *v1alpha1.Apicurito) (s resource.KubernetesResource) {
 		},
 		Spec: corev1.ServiceSpec{
 			Type:     corev1.ServiceTypeClusterIP,
-			Selector: labels,
+			Selector: labelComponent(name),
 			Ports: []corev1.ServicePort{
 				{
 					Name:       "api-port",
@@ -70,8 +70,6 @@ func apicuritoService(a *v1alpha1.Apicurito) (s resource.KubernetesResource) {
 }
 
 func generatorService(a *v1alpha1.Apicurito) (s resource.KubernetesResource) {
-	labels["component"] = "apicurito-generator"
-
 	s = &corev1.Service{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "v1",
@@ -80,7 +78,7 @@ func generatorService(a *v1alpha1.Apicurito) (s resource.KubernetesResource) {
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      fmt.Sprintf("%s-%s", a.Name, "generator"),
 			Namespace: a.Namespace,
-			Labels:    labels,
+			Labels:    labelComponent("apicurito-generator"),
 			OwnerReferences: []metav1.OwnerReference{
 				*metav1.NewControllerRef(a, schema.GroupVersionKind{
 					Group:   v1alpha1.SchemeGroupVersion.Group,
@@ -91,7 +89,7 @@ func generatorService(a *v1alpha1.Apicurito) (s resource.KubernetesResource) {
 		},
 		Spec: corev1.ServiceSpec{
 			Type:     corev1.ServiceTypeClusterIP,
-			Selector: labels,
+			Selector: labelComponent("apicurito-generator"),
 			Ports: []corev1.ServicePort{
 				{
 					Name:       "http",
@@ -103,4 +101,13 @@ func generatorService(a *v1alpha1.Apicurito) (s resource.KubernetesResource) {
 	}
 
 	return
+}
+
+func labelComponent(name string) map[string]string {
+	_labels := make(map[string]string)
+	for index, element := range labels {
+		_labels[index] = element
+	}
+	_labels["component"] = name
+	return _labels
 }
