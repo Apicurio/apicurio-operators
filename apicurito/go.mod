@@ -62,6 +62,8 @@ replace (
 	k8s.io/helm => k8s.io/helm v2.16.1+incompatible
 )
 
+replace golang.org/x/text => golang.org/x/text v0.3.3
+
 replace github.com/openshift/api => github.com/openshift/api v0.0.0-20200205145930-e9d93e317dd1
 
 replace github.com/openshift/client-go => github.com/openshift/client-go v0.0.0-20191125132246-f6563a70e19a
