@@ -87,6 +87,8 @@ var (
 
 var log = logf.Log.WithName("cmd")
 
+var GitCommit string
+
 func init() {
 	// Register custom metrics with the global prometheus registry
 	customMetrics.Registry.MustRegister(operatorVersion)
@@ -97,6 +99,7 @@ func printVersion() {
 	log.Info(fmt.Sprintf("Go OS/Arch: %s/%s", runtime.GOOS, runtime.GOARCH))
 	log.Info(fmt.Sprintf("Version of operator-sdk: %v", sdkVersion.Version))
 	log.Info(fmt.Sprintf("Version of apicurito operator: %v", version.Version))
+	log.Info(fmt.Sprintf("Apicurito-operator Git Commit: %v", GitCommit))
 }
 
 func (o *options) run() error {
