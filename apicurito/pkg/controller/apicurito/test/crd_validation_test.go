@@ -16,7 +16,7 @@ func TestSampleCustomResources(t *testing.T) {
 	schema := getSchema(t)
 	assert.NotNil(t, schema)
 
-	filePath := getCRFile(t, "../../../../deploy/crs")
+	filePath := getCRFile(t, "../../../../config/samples")
 	bytes, err := ioutil.ReadFile(filePath)
 	assert.NoError(t, err, "Error reading CR yaml %v", filePath)
 
@@ -44,10 +44,18 @@ spec:
 func TestCompleteCRD(t *testing.T) {
 	schema := getSchema(t)
 	missingEntries := schema.GetMissingEntries(&v1alpha1.Apicurito{})
-	if strings.Contains(missingEntries[0].Path, "/spec/size") {
-		// The size is not expected to be used and is not fully defined TODO: verify
-	} else {
-		assert.Fail(t, "Discrepancy between CRD and Struct", "Missing or incorrect schema validation at %v, expected type %v", missingEntries[0].Path, missingEntries[0].Type)
+
+	// The size is not expected to be used and is not fully defined TODO: verify
+	var meSize *validation.SchemaEntry = nil
+	for _, me := range missingEntries {
+		if strings.Contains(me.Path, "/spec/size") {
+			meSize = &me
+			break
+		}
+	}
+
+	if meSize == nil {
+		assert.Fail(t, "Discrepancy between CRD and Struct", "Missing or incorrect schema validation at %v, expected type %v", meSize.Path, meSize.Type)
 	}
 }
 
@@ -58,7 +66,7 @@ func getCRFile(t *testing.T, dir string) string {
 			if err != nil {
 				return err
 			}
-			if !info.IsDir() {
+			if !info.IsDir() && info.Name() != "kustomization.yaml" {
 				file = path
 			}
 			return nil
@@ -68,7 +76,7 @@ func getCRFile(t *testing.T, dir string) string {
 }
 
 func getSchema(t *testing.T) validation.Schema {
-	crdFile := "../../../../deploy/crds/apicur_v1alpha1_apicurito_crd.yaml"
+	crdFile := "../../../../config/crd/bases/apicur.io_apicuritoes.yaml"
 	bytes, err := ioutil.ReadFile(crdFile)
 	assert.NoError(t, err, "Error reading CRD yaml %v", crdFile)
 	schema, err := validation.New(bytes)

@@ -29,9 +29,9 @@ import (
 
 func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenAPIDefinition {
 	return map[string]common.OpenAPIDefinition{
-		"github.com/jboss-fuse/apicurio-operators/apicurito/pkg/apis/apicur/v1alpha1.Apicurito":       schema_pkg_apis_apicur_v1alpha1_Apicurito(ref),
-		"github.com/jboss-fuse/apicurio-operators/apicurito/pkg/apis/apicur/v1alpha1.ApicuritoSpec":   schema_pkg_apis_apicur_v1alpha1_ApicuritoSpec(ref),
-		"github.com/jboss-fuse/apicurio-operators/apicurito/pkg/apis/apicur/v1alpha1.ApicuritoStatus": schema_pkg_apis_apicur_v1alpha1_ApicuritoStatus(ref),
+		"./pkg/apis/apicur/v1alpha1.Apicurito":       schema_pkg_apis_apicur_v1alpha1_Apicurito(ref),
+		"./pkg/apis/apicur/v1alpha1.ApicuritoSpec":   schema_pkg_apis_apicur_v1alpha1_ApicuritoSpec(ref),
+		"./pkg/apis/apicur/v1alpha1.ApicuritoStatus": schema_pkg_apis_apicur_v1alpha1_ApicuritoStatus(ref),
 	}
 }
 
@@ -39,7 +39,7 @@ func schema_pkg_apis_apicur_v1alpha1_Apicurito(ref common.ReferenceCallback) com
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
-				Description: "Apicurito is the Schema for the apicuritos API",
+				Description: "Apicurito is the Schema for the apicuritoes API",
 				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"kind": {
@@ -63,19 +63,19 @@ func schema_pkg_apis_apicur_v1alpha1_Apicurito(ref common.ReferenceCallback) com
 					},
 					"spec": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/jboss-fuse/apicurio-operators/apicurito/pkg/apis/apicur/v1alpha1.ApicuritoSpec"),
+							Ref: ref("./pkg/apis/apicur/v1alpha1.ApicuritoSpec"),
 						},
 					},
 					"status": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/jboss-fuse/apicurio-operators/apicurito/pkg/apis/apicur/v1alpha1.ApicuritoStatus"),
+							Ref: ref("./pkg/apis/apicur/v1alpha1.ApicuritoStatus"),
 						},
 					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"github.com/jboss-fuse/apicurio-operators/apicurito/pkg/apis/apicur/v1alpha1.ApicuritoSpec", "github.com/jboss-fuse/apicurio-operators/apicurito/pkg/apis/apicur/v1alpha1.ApicuritoStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
+			"./pkg/apis/apicur/v1alpha1.ApicuritoSpec", "./pkg/apis/apicur/v1alpha1.ApicuritoStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
 	}
 }
 

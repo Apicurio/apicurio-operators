@@ -42,8 +42,14 @@ type ApicuritoStatus struct {
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// Apicurito is the Schema for the apicuritos API
+// Apicurito is the Schema for the apicuritoes API
 // +k8s:openapi-gen=true
+// +kubebuilder:subresource:status
+// +kubebuilder:object:root=true
+// +kubebuilder:storageversion
+// +kubebuilder:resource:path=apicuritoes,scope=Namespaced
+// +operator-sdk:csv:customresourcedefinitions:displayName="Apicurito"
+// +operator-sdk:csv:customresourcedefinitions:resources={{ServiceAccount,v1},{ClusterRole,rbac.authorization.k8s.io/v1},{Role,rbac.authorization.k8s.io/v1},{Deployment,apps/v1}}
 type Apicurito struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
