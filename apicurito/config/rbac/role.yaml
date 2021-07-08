@@ -43,6 +43,17 @@ rules:
   verbs:
   - '*'
 - apiGroups:
+  - ""
+  resources:
+  - services
+  - services/finalizers
+  verbs:
+  - list
+  - get
+  - watch
+  - create
+  - update
+- apiGroups:
   - monitoring.coreos.com
   resources:
   - servicemonitors
