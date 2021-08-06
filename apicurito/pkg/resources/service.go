@@ -78,7 +78,7 @@ func generatorService(a *v1alpha1.Apicurito) (s resource.KubernetesResource) {
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      fmt.Sprintf("%s-%s", a.Name, "generator"),
 			Namespace: a.Namespace,
-			Labels:    labelComponent("apicurito-generator"),
+			Labels:    labelComponent("apicurito-service-generator"),
 			OwnerReferences: []metav1.OwnerReference{
 				*metav1.NewControllerRef(a, schema.GroupVersionKind{
 					Group:   v1alpha1.SchemeGroupVersion.Group,
@@ -89,7 +89,7 @@ func generatorService(a *v1alpha1.Apicurito) (s resource.KubernetesResource) {
 		},
 		Spec: corev1.ServiceSpec{
 			Type:     corev1.ServiceTypeClusterIP,
-			Selector: labelComponent("apicurito-generator"),
+			Selector: labelComponent("apicurito-service-generator"),
 			Ports: []corev1.ServicePort{
 				{
 					Name:       "http",
