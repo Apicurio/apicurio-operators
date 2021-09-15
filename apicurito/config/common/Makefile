@@ -14,8 +14,13 @@
 # limitations under the License.
 
 VERSION ?= 1.0.1
+PREVIOUS_VERSION := 0.1.0
 DEFAULT_IMAGE ?=  quay.io/apicurio/apicurito-operator
 IMAGE ?= $(DEFAULT_IMAGE)
 DEFAULT_TAG := v$(VERSION)
 TAG ?= $(DEFAULT_TAG)
 CHANNELS := 1.0.x
+
+CONTROLLER_GEN_VERSION := v0.4.1
+OPERATOR_SDK_VERSION := v1.5.0
+KUSTOMIZE_VERSION := v4.1.2
