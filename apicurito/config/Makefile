@@ -36,7 +36,13 @@ MANAGER := manager
 MANIFESTS := manifests
 RBAC := rbac
 
-.PHONY: kustomize setup operator app
+CSV_SUPPORT := Apicurito
+CSV_DISPLAY_NAME := Apicurito
+CSV_REPLACES := $(PACKAGE)operator.v$(PREVIOUS_VERSION)
+CSV_FILENAME := $(PACKAGE).clusterserviceversion.yaml
+CSV_PATH := $(MANIFESTS)/bases/$(CSV_FILENAME)
+
+.PHONY: kustomize operator-sdk setup operator app
 
 kubectl:
 ifeq (, $(shell which kubectl))
@@ -129,7 +135,7 @@ ifeq (, $(shell which controller-gen))
 	CONTROLLER_GEN_TMP_DIR=$$(mktemp -d) ;\
 	cd $$CONTROLLER_GEN_TMP_DIR ;\
 	go mod init tmp ;\
-	go get sigs.k8s.io/controller-tools/cmd/controller-gen@v0.3.0 ;\
+	go get sigs.k8s.io/controller-tools/cmd/controller-gen@$(CONTROLLER_GEN_VERSION) ;\
 	rm -rf $$CONTROLLER_GEN_TMP_DIR ;\
 	}
 CONTROLLER_GEN=$(GOBIN)/controller-gen
@@ -144,12 +150,27 @@ ifeq (, $(shell which kustomize))
 	KUSTOMIZE_GEN_TMP_DIR=$$(mktemp -d) ;\
 	cd $$KUSTOMIZE_GEN_TMP_DIR ;\
 	go mod init tmp ;\
-	go get sigs.k8s.io/kustomize/kustomize/v4@v4.0.5 ;\
+	go get sigs.k8s.io/kustomize/kustomize/v4@$(KUSTOMIZE_VERSION) ;\
 	rm -rf $$KUSTOMIZE_GEN_TMP_DIR ;\
 	}
 KUSTOMIZE=$(GOBIN)/kustomize
 else
 KUSTOMIZE=$(shell which kustomize)
+endif
+
+operator-sdk:
+ifeq (, $(shell which operator-sdk))
+	@{ \
+	set -e ;\
+	curl \
+		-L https://github.com/operator-framework/operator-sdk/releases/download/$(OPERATOR_SDK_VERSION)/operator-sdk_linux_amd64 \
+		-o operator-sdk ;\
+	chmod +x operator-sdk ;\
+	mv operator-sdk $(GOBIN)/ ;\
+	}
+OPERATOR_SDK=$(GOBIN)/operator-sdk
+else
+OPERATOR_SDK=$(shell which operator-sdk)
 endif
 
 .PHONY: bundle manifests generate generate-deepcopy generate-crds
@@ -170,12 +191,27 @@ generate: generate-deepcopy generate-crds
 CSV=$(MANIFESTS)/bases/apicurito.clusterserviceversion.yaml
 TIMESTAMP=$(shell date -u '+%F %T %Z')
 
+# Tailor the manifest according to default values for this project
+# Note. to make the bundle this name must match that specified in PROJECT
+#
+pre-bundle:
+# bundle name must match that which appears in PROJECT file
+	@sed -i 's/projectName: .*/projectName: $(PACKAGE)/' PROJECT
+# finds the single CSV file and renames it
+	@find $(MANIFESTS)/bases -type f \( -name "*.clusterserviceversion.yaml" ! -name $(CSV_FILENAME) \) -execdir mv '{}' $(CSV_FILENAME) ';'
+	@sed -i 's~^    containerImage: .*~    containerImage: $(IMAGE):$(TAG)~' $(CSV_PATH)
+	@sed -i 's/^    support: .*/    support: $(CSV_SUPPORT)/' $(CSV_PATH)
+	@sed -i 's/^  name: .*.\(v.*\)/  name: $(PACKAGE).v$(VERSION)/' $(CSV_PATH)
+	@sed -i 's/^      displayName: .*/      displayName: $(CSV_DISPLAY_NAME)/' $(CSV_PATH)
+	@sed -i 's/^  replaces: .*/  replaces: $(CSV_REPLACES)/' $(CSV_PATH)
+	@sed -i 's/^  version: .*/  version: $(VERSION)/' $(CSV_PATH)
+
 # Generate bundle manifests and metadata, then validate generated files.
-bundle: generate-crds kustomize
+bundle: generate-crds kustomize pre-bundle
 	@$(MAKE) $(MK_OPTIONS) -C $(RBAC) init
 	@$(MAKE) $(MK_OPTIONS) -C $(MANAGER) init
 # (Re)-generate the manifests directory
-	@operator-sdk generate kustomize manifests \
+	@$(OPERATOR_SDK) generate kustomize manifests \
 		--apis-dir $(PKG)/apis \
 		--input-dir $(MANIFESTS) \
 		--output-dir $(MANIFESTS)
@@ -185,7 +221,7 @@ bundle: generate-crds kustomize
 	@cd $(MANIFESTS) && $(KUSTOMIZE) edit set image $(DEFAULT_IMAGE)=$(IMAGE):$(TAG)
 # Generates the bundle complete with manifests
 	@$(KUSTOMIZE) build $(KOPTIONS) $(MANIFESTS) | \
-		operator-sdk generate bundle \
+		$(OPERATOR_SDK) generate bundle \
 		-q --overwrite --version $(VERSION) \
 		--kustomize-dir $(MANIFESTS) $(BUNDLE_METADATA_OPTS)
 # # Moves the docker file into the bundle directory
@@ -193,7 +229,7 @@ bundle: generate-crds kustomize
 		sed -i 's/bundle\///g' $(BUNDLE_DIR)/Dockerfile
 # Add Product LABELS to Dockerfile
 	@cat Dockerfile.labels >> $(BUNDLE_DIR)/Dockerfile
-	@operator-sdk bundle validate $(BUNDLE_DIR)
+	@$(OPERATOR_SDK) bundle validate $(BUNDLE_DIR)
 
 # Build the bundle image.
 .PHONY: bundle-build
