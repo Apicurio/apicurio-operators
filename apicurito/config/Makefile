@@ -12,29 +12,10 @@ MK_OPTIONS := -s
 #
 KOPTIONS := --load-restrictor LoadRestrictionsNone
 
-#
-# Vars that can be overridden by external env vars
-#
-VERSION ?= 7.9.0
-DEBUG ?= false
-KUBE_USER ?= developer
-DEFAULT_IMAGE ?=  registry.redhat.io/fuse7/fuse-apicurito-rhel7-operator
-IMAGE ?= $(DEFAULT_IMAGE)
-DEFAULT_TAG := 1.9
-TAG ?= $(DEFAULT_TAG)
-LEGACY ?= false
+CONFIG_DIR := .
 
-NAMESPACE := $(shell ./script/namespace.sh)
-CHANNELS := $(VERSION:.0=.x)
-DEFAULT_CHANNEL := $(VERSION:.0=.x)
-PACKAGE := fuse-apicurito
-DOMAIN := apicur.io
-BUNDLE_DIR := bundle
-PKG := ../pkg
-CRD := crd/bases
-MANAGER := manager
-MANIFESTS := manifests
-RBAC := rbac
+# User customisable variables
+include $(CONFIG_DIR)/vars/Makefile
 
 .PHONY: kustomize setup operator app
 
@@ -129,7 +110,7 @@ ifeq (, $(shell which controller-gen))
 	CONTROLLER_GEN_TMP_DIR=$$(mktemp -d) ;\
 	cd $$CONTROLLER_GEN_TMP_DIR ;\
 	go mod init tmp ;\
-	go get sigs.k8s.io/controller-tools/cmd/controller-gen@v0.3.0 ;\
+	go get sigs.k8s.io/controller-tools/cmd/controller-gen@$(CONTROLLER_GEN_VERSION) ;\
 	rm -rf $$CONTROLLER_GEN_TMP_DIR ;\
 	}
 CONTROLLER_GEN=$(GOBIN)/controller-gen
@@ -144,7 +125,7 @@ ifeq (, $(shell which kustomize))
 	KUSTOMIZE_GEN_TMP_DIR=$$(mktemp -d) ;\
 	cd $$KUSTOMIZE_GEN_TMP_DIR ;\
 	go mod init tmp ;\
-	go get sigs.k8s.io/kustomize/kustomize/v4@v4.0.5 ;\
+	go get sigs.k8s.io/kustomize/kustomize/v4@$(KUSTOMIZE_VERSION) ;\
 	rm -rf $$KUSTOMIZE_GEN_TMP_DIR ;\
 	}
 KUSTOMIZE=$(GOBIN)/kustomize
@@ -152,7 +133,22 @@ else
 KUSTOMIZE=$(shell which kustomize)
 endif
 
-.PHONY: bundle manifests generate generate-deepcopy generate-crds
+operator-sdk:
+ifeq (, $(shell which operator-sdk))
+	@{ \
+	set -e ;\
+	curl \
+		-L https://github.com/operator-framework/operator-sdk/releases/download/$(OPERATOR_SDK_VERSION)/operator-sdk_linux_amd64 \
+		-o operator-sdk ;\
+	chmod +x operator-sdk ;\
+	mv operator-sdk $(GOBIN)/ ;\
+	}
+OPERATOR_SDK=$(GOBIN)/operator-sdk
+else
+OPERATOR_SDK=$(shell which operator-sdk)
+endif
+
+.PHONY: kustomize operator-sdk bundle manifests generate generate-deepcopy generate-crds
 
 generate-deepcopy: controller-gen
 	@$(CONTROLLER_GEN) paths="$(PKG)/..." object
@@ -167,30 +163,28 @@ generate-crds: controller-gen
 # Generate code
 generate: generate-deepcopy generate-crds
 
-CREATED=$(shell date -u +%FT%TZ)
-PRODUCT_SUPPORT := Fuse Apicurito
-UPSTREAM_CSV=$(MANIFESTS)/bases/apicurito.clusterserviceversion.yaml
-DOWNSTREAM_CSV=$(MANIFESTS)/bases/$(PACKAGE).clusterserviceversion.yaml
-TIMESTAMP=$(shell date -u '+%F %T %Z')
-
-#
-# Product manifest CSV is called $(PRODUCT_NAME)
-# so have to rename accordingly.
+# Tailor the manifest according to default values for this project
 # Note. to make the bundle this name must match that specified in PROJECT
 #
-rename-manifest:
-	@cp -f $(UPSTREAM_CSV) $(DOWNSTREAM_CSV)
-	@sed -i 's/support: Apicurito/support: $(PRODUCT_SUPPORT)/' $(DOWNSTREAM_CSV)
-	@sed -i 's/name: .*.\(v.*\)/name: $(PACKAGE).\1/' $(DOWNSTREAM_CSV)
-	@sed -i 's~containerImage: .*~containerImage: $(IMAGE):$(TAG)~' $(DOWNSTREAM_CSV)
-	@sed -i 's/createdAt: .*/createdAt: $(TIMESTAMP)/' $(DOWNSTREAM_CSV)
+pre-bundle:
+# bundle name must match that which appears in PROJECT file
+	@sed -i 's/projectName: .*/projectName: $(PACKAGE)/' PROJECT
+# finds the single CSV file and renames it
+	@find $(MANIFESTS)/bases -type f -name "*.clusterserviceversion.yaml" -execdir mv '{}' $(CSV_FILENAME) ';'
+	@sed -i 's~^    containerImage: .*~    containerImage: $(IMAGE):$(TAG)~' $(CSV_PATH)
+	@sed -i 's/^    support: .*/    support: $(CSV_SUPPORT)/' $(CSV_PATH)
+	@sed -i "s/^    olm.skipRange: .*/    olm.skipRange: '>=7.7.0 <$(VERSION)'/" $(CSV_PATH)
+	@sed -i 's/^  name: .*.\(v.*\)/  name: $(PACKAGE).v$(VERSION)/' $(CSV_PATH)
+	@sed -i 's/^  displayName: .*/  displayName: $(CSV_DISPLAY_NAME)/' $(CSV_PATH)
+	@sed -i 's/^  replaces: .*/  replaces: $(CSV_REPLACES)/' $(CSV_PATH)
+	@sed -i 's/^  version: .*/  version: $(VERSION)/' $(CSV_PATH)
 
 # Generate bundle manifests and metadata, then validate generated files.
-bundle: generate-crds kustomize rename-manifest
+bundle: generate-crds kustomize pre-bundle
 	@$(MAKE) $(MK_OPTIONS) -C $(RBAC) init
 	@$(MAKE) $(MK_OPTIONS) -C $(MANAGER) init
 # (Re)-generate the manifests directory
-	@operator-sdk generate kustomize manifests \
+	@$(OPERATOR_SDK) generate kustomize manifests \
 		--apis-dir $(PKG)/apis \
 		--input-dir $(MANIFESTS) \
 		--output-dir $(MANIFESTS)
@@ -198,15 +192,18 @@ bundle: generate-crds kustomize rename-manifest
 	@cd $(MANIFESTS) && $(KUSTOMIZE) edit set image $(DEFAULT_IMAGE)=$(IMAGE):$(TAG)
 # Generates the bundle complete with manifests
 	@$(KUSTOMIZE) build $(KOPTIONS) $(MANIFESTS) | \
-		operator-sdk generate bundle \
+		$(OPERATOR_SDK) generate bundle \
 		-q --overwrite --version $(VERSION) \
 		--kustomize-dir $(MANIFESTS) $(BUNDLE_METADATA_OPTS)
-# # Moves the docker file into the bundle directory
+# Add a timestamp to the new bundle manifest
+	@sed -i 's/    createdAt: .*/    createdAt: $(TIMESTAMP)/' $(BUNDLE_DIR)/$(MANIFESTS)/$(CSV_FILENAME)
+# Moves the docker file into the bundle directory
 	@mv bundle.Dockerfile $(BUNDLE_DIR)/Dockerfile && \
 		sed -i 's/bundle\///g' $(BUNDLE_DIR)/Dockerfile
 # Add Product LABELS to Dockerfile
-		@cat Dockerfile.labels >> $(BUNDLE_DIR)/Dockerfile
-	@operator-sdk bundle validate $(BUNDLE_DIR)
+	@sed -i 's/version=\".*\"/version=\"$(TAG)\"/' Dockerfile.labels
+	@cat Dockerfile.labels >> $(BUNDLE_DIR)/Dockerfile
+	@$(OPERATOR_SDK) bundle validate $(BUNDLE_DIR)
 
 # Build the bundle image.
 .PHONY: bundle-build
@@ -214,5 +211,10 @@ bundle-build: bundle
 	cd bundle && docker build -f Dockerfile -t $(BUNDLE_IMG) .
 
 clean:
-	find . -name "*.gen.*" -delete
-	rm -rf bundle
+	@find . -name "*.gen.*" -delete
+ifneq ($(CSV_PATH), $(DEFAULT_CSV))
+ifneq ("$(wildcard $(CSV_PATH))","")
+	@mv $(CSV_PATH) $(DEFAULT_CSV)
+endif
+endif
+	@rm -rf bundle

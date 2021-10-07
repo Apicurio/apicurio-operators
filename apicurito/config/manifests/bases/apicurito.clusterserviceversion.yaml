@@ -5,9 +5,11 @@ metadata:
     capabilities: Seamless Upgrades
     categories: Integration & Delivery
     certified: "false"
-    containerImage: registry-proxy.engineering.redhat.com/rh-osbs/fuse7-fuse-apicurito-rhel7-operator:1.9
+    containerImage: registry-proxy.engineering.redhat.com/rh-osbs/fuse7-fuse-apicurito-rhel8-operator:X.Y
     createdAt: DATE TIME TZ
-    description: Manages the installation and upgrades of apicurito, a small/minimal version of Apicurio
+    description: Manages the installation and upgrades of apicurito, a small/minimal
+      version of Apicurio
+    olm.skipRange: '>=7.7.0 <X.Y.Z'
     operators.operatorframework.io/builder: operator-sdk-v1.0.5
     operators.operatorframework.io/project_layout: go.kubebuilder.io/v2
     repository: https://github.com/Apicurio/apicurio-operators/tree/master/apicurito
@@ -84,7 +86,8 @@ spec:
   maturity: alpha
   provider:
     name: Red Hat
+  replaces: fuse-apicurito.vA.B.C
   selector:
     matchLabels:
       name: fuse-apicurito
-  version: 7.9.0
+  version: X.Y.Z

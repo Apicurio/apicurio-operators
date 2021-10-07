@@ -1,0 +1,10 @@
+- op: add
+  path: /spec/template/spec/containers/0/env/-
+  value:
+    name: RELATED_IMAGE_APICURITO
+    value: registry-proxy.engineering.redhat.com/rh-osbs/fuse7-fuse-apicurito-rhel8:1.10
+- op: add
+  path: /spec/template/spec/containers/0/env/-
+  value:
+    name: RELATED_IMAGE_GENERATOR
+    value: registry-proxy.engineering.redhat.com/rh-osbs/fuse7-fuse-apicurito-generator-rhel8:1.10

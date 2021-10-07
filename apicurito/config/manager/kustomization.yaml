@@ -1,3 +1,10 @@
 resources:
 - deployment.gen.yaml
 - service_account.yaml
+
+patchesJson6902:
+- target:
+    version: v1
+    kind: Deployment
+    name: fuse-apicurito
+  path: ./patches/related-images-patch.yaml

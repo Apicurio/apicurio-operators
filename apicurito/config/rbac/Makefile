@@ -1,11 +1,8 @@
-TMPL := tmpl
-YAML := yaml
-GEN := gen
-NAMESPACE_VAR := {NAMESPACE}
+CONFIG_DIR := ../
+# User customisable variables
+include $(CONFIG_DIR)/vars/Makefile
 
 CLUSTER_ROLE_BINDING := ./cluster_role_binding
-
-NAMESPACE := $(shell ../script/namespace.sh)
 
 .PHONY: init
 
