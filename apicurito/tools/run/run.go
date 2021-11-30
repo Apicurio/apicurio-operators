@@ -522,7 +522,7 @@ func buildContainer() (out []byte, err error) {
 
 func buildDocker(c *config.Config) (out []byte, err error) {
 	name := "fuse-apicurito"
-	channel := fmt.Sprintf("%s-%s.x", name, version.ShortVersion())
+	channel := fmt.Sprintf("%s-%s.x", name, version.Version)
 
 	m := `FROM scratch
 
@@ -548,7 +548,7 @@ LABEL name="fuse7/fuse-online-operator-metadata" \
       io.k8s.display-name="Red Hat Apicurito Operator" \
       io.openshift.tags="fuse,API"
 `
-	m = fmt.Sprintf(m, name, channel, channel, c.SupportedOpenShiftVersions, fmt.Sprintf("%s.x", version.ShortVersion()))
+	m = fmt.Sprintf(m, name, channel, channel, c.SupportedOpenShiftVersions, fmt.Sprintf("%s.x", version.Version))
 	out = []byte(m)
 	return
 }
@@ -556,7 +556,7 @@ LABEL name="fuse7/fuse-online-operator-metadata" \
 func buildAnnotation() (out []byte, err error) {
 	name := "fuse-apicurito"
 
-	channel := fmt.Sprintf("apicurito-%s.x", version.ShortVersion())
+	channel := fmt.Sprintf("apicurito-%s.x", version.Version)
 
 	m := map[string]map[string]string{
 		"annotations": {
