@@ -42,7 +42,6 @@ import (
 	"github.com/operator-framework/operator-sdk/pkg/leader"
 	"github.com/operator-framework/operator-sdk/pkg/log/zap"
 	"github.com/operator-framework/operator-sdk/pkg/metrics"
-	"github.com/operator-framework/operator-sdk/pkg/restmapper"
 	sdkVersion "github.com/operator-framework/operator-sdk/version"
 	"github.com/spf13/cobra"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
@@ -137,7 +136,6 @@ func (o *options) run() error {
 	// Create a new Cmd to provide shared dependencies and start components
 	mgr, err := manager.New(cfg, manager.Options{
 		Namespace:          namespace,
-		MapperProvider:     restmapper.NewDynamicRESTMapper,
 		MetricsBindAddress: fmt.Sprintf("%s:%d", metricsHost, metricsPort),
 	})
 	if err != nil {

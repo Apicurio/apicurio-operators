@@ -21,18 +21,17 @@ import (
 
 	"k8s.io/apimachinery/pkg/util/intstr"
 
-	"github.com/RHsyseng/operator-utils/pkg/resource"
-
 	"k8s.io/apimachinery/pkg/runtime/schema"
 
 	"github.com/apicurio/apicurio-operators/apicurito/pkg/apis/apicur/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 var labels = map[string]string{"app": "apicurito"}
 
-func apicuritoService(a *v1alpha1.Apicurito) (s resource.KubernetesResource) {
+func apicuritoService(a *v1alpha1.Apicurito) (s client.Object) {
 
 	// Define new service
 	name := fmt.Sprintf("%s-%s", a.Name, "ui")
@@ -69,7 +68,7 @@ func apicuritoService(a *v1alpha1.Apicurito) (s resource.KubernetesResource) {
 	return
 }
 
-func generatorService(a *v1alpha1.Apicurito) (s resource.KubernetesResource) {
+func generatorService(a *v1alpha1.Apicurito) (s client.Object) {
 	s = &corev1.Service{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "v1",

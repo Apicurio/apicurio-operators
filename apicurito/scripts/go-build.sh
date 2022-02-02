@@ -16,8 +16,14 @@ go mod vendor
 ./scripts/go-test.sh
 
 CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
-  go build -v -a \
+  go build -a \
   -o build/_output/bin/apicurito \
   -mod=vendor github.com/apicurio/apicurio-operators/apicurito/cmd/manager
+if [ $? != 0 ]; then
+  echo "Error: build failed"
+  exit 1
+fi
 
+echo
+echo "=== Building image ..."
 docker build . -t ${IMAGE}:${TAG}

@@ -48,10 +48,6 @@ func NewApicuritoCommand(ctx context.Context) (*cobra.Command, error) {
 	f.Usage = "path to the config file to connect to the cluster"
 	cmd.PersistentFlags().AddGoFlag(&f)
 
-	f = *flag.CommandLine.Lookup("master")
-	f.Usage = "the address of the cluster API server."
-	cmd.PersistentFlags().AddGoFlag(&f)
-
 	cmd.AddCommand(newRunCommand(&options))
 	cmd.AddCommand(newOlmCommand(&options))
 	return &cmd, nil
