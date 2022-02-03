@@ -21,7 +21,6 @@ KUBE_USER ?= developer
 LEGACY ?= false
 
 NAMESPACE := $(shell ./script/namespace.sh)
-DEFAULT_CHANNEL := $(CHANNELS)
 PACKAGE := apicurito
 DOMAIN := apicur.io
 BUNDLE_DIR := bundle
