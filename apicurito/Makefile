@@ -1,9 +1,10 @@
 
+CONFIG := config
 #
 # Include the main common Makefile containing
 # basic common recipes and vars
 #
-include config/common/Makefile
+include $(CONFIG)/common/Makefile
 
 # kernel-style V=1 build verbosity
 ifeq ("$(origin V)", "command line")
@@ -33,9 +34,21 @@ lint:
 
 .PHONY: build
 build:
-	IMAGE=$(IMAGE) TAG=$(TAG) ./scripts/go-build.sh
+	IMAGE=$(IMAGE) TAG=$(TAG) VERSION=$(VERSION) ./scripts/go-build.sh
 
 
 .PHONY: clean
 clean:
 	rm -rf build/_output
+
+.PHONY: setup
+setup:
+	$(MAKE) $(MK_OPTIONS) -C $(CONFIG) $@
+
+.PHONY: operator
+operator:
+	$(MAKE) $(MK_OPTIONS) -C $(CONFIG) $@
+
+.PHONY: app
+app:
+	$(MAKE) $(MK_OPTIONS) -C $(CONFIG) $@

@@ -25,7 +25,6 @@ import (
 
 	"k8s.io/apimachinery/pkg/runtime/schema"
 
-	"github.com/apicurio/apicurio-operators/apicurito/version"
 	customMetrics "sigs.k8s.io/controller-runtime/pkg/metrics"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -33,6 +32,7 @@ import (
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 
+	"github.com/apicurio/apicurio-operators/apicurito/pkg"
 	"github.com/apicurio/apicurio-operators/apicurito/pkg/apis"
 	"github.com/apicurio/apicurio-operators/apicurito/pkg/apis/apicur/v1alpha1"
 	"github.com/apicurio/apicurio-operators/apicurito/pkg/configuration"
@@ -79,7 +79,7 @@ var (
 		prometheus.GaugeOpts{
 			Name:        "apicurito_version_info",
 			Help:        "Apicurito operator information",
-			ConstLabels: prometheus.Labels{"operator_version": version.Version},
+			ConstLabels: prometheus.Labels{"operator_version": pkg.Version},
 		},
 	)
 )
@@ -95,7 +95,10 @@ func printVersion() {
 	log.Info(fmt.Sprintf("Go Version: %s", runtime.Version()))
 	log.Info(fmt.Sprintf("Go OS/Arch: %s/%s", runtime.GOOS, runtime.GOARCH))
 	log.Info(fmt.Sprintf("Version of operator-sdk: %v", sdkVersion.Version))
-	log.Info(fmt.Sprintf("Version of apicurito operator: %v", version.Version))
+	log.Info(fmt.Sprintf("Version of apicurito operator: %v", pkg.Version))
+	if len(pkg.BuildDateTime) > 0 {
+		log.Info(fmt.Sprintf("Apicurito Build Time: %s", pkg.BuildDateTime))
+	}
 }
 
 func (o *options) run() error {
