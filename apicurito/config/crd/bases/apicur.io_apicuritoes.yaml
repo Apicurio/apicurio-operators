@@ -15,7 +15,16 @@ spec:
     singular: apicurito
   scope: Namespaced
   versions:
-  - name: v1alpha1
+  - additionalPrinterColumns:
+    - description: The apicurito phase
+      jsonPath: .status.phase
+      name: Phase
+      type: string
+    - description: The apicurito version
+      jsonPath: .status.version
+      name: Version
+      type: string
+    name: v1alpha1
     schema:
       openAPIV3Schema:
         description: Apicurito is the Schema for the apicuritoes API
@@ -36,10 +45,7 @@ spec:
             description: ApicuritoSpec defines the desired state of Apicurito
             properties:
               size:
-                description: 'INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-                  Important: Run "operator-sdk generate k8s" to regenerate code after
-                  modifying this file Add custom validation using kubebuilder tags:
-                  https://book.kubebuilder.io/beyond_basics/generating_crd.html'
+                description: The number of pods to scale
                 format: int32
                 type: integer
             required:
@@ -47,6 +53,13 @@ spec:
             type: object
           status:
             description: ApicuritoStatus defines the observed state of Apicurito
+            properties:
+              phase:
+                description: The phase the operator has reached, eg. INSTALLED, STARTING
+                type: string
+              version:
+                description: The currently installed version of Apicurito
+                type: string
             type: object
         type: object
     served: true

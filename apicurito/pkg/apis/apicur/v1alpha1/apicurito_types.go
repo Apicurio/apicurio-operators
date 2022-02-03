@@ -26,15 +26,45 @@ import (
 // ApicuritoSpec defines the desired state of Apicurito
 // +k8s:openapi-gen=true
 type ApicuritoSpec struct {
-	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
-	// Add custom validation using kubebuilder tags: https://book.kubebuilder.io/beyond_basics/generating_crd.html
+	// The number of pods to scale
+	// +operator-sdk:csv:customresourcedefinitions:type=spec
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Size"
 	Size int32 `json:"size"`
 }
+
+// ApicuritoPhase defines the phase of the installation
+type ApicuritoPhase string
+
+const (
+	// ApicuritoPhaseMissing defines if Apicurito CR not available
+	ApicuritoPhaseMissing ApicuritoPhase = ""
+	// ApicuritoPhaseStarting defines if Apicurito install starting
+	ApicuritoPhaseStarting ApicuritoPhase = "Starting"
+	// ApicuritoPhaseInstalling defines if Apicurito install underway
+	ApicuritoPhaseInstalling ApicuritoPhase = "Installing"
+	// ApicuritoPhaseInstalled defines if Apicurito install completed
+	ApicuritoPhaseInstalled ApicuritoPhase = "Installed"
+	// ApicuritoPhaseInstallError defines if Apicurito install produced an error
+	ApicuritoPhaseInstallError ApicuritoPhase = "InstallError"
+)
 
 // ApicuritoStatus defines the observed state of Apicurito
 // +k8s:openapi-gen=true
 type ApicuritoStatus struct {
+	// The phase the operator has reached, eg. INSTALLED, STARTING
+	// +optional
+	// +operator-sdk:csv:customresourcedefinitions:type=status
+	// +operator-sdk:csv:customresourcedefinitions:type=status,displayName="Phase"
+	// +operator-sdk:csv:customresourcedefinitions:type=status,xDescriptors="urn:alm:descriptor:io.kubernetes.phase"
+	Phase ApicuritoPhase `json:"phase,omitempty"`
+
+	// The currently installed version of Apicurito
+	// +optional
+	// +operator-sdk:csv:customresourcedefinitions:type=status
+	// +operator-sdk:csv:customresourcedefinitions:type=status,displayName="Version"
+	// +operator-sdk:csv:customresourcedefinitions:type=status,xDescriptors="urn:alm:descriptor:text"
+	Version string `json:"version,omitempty"`
+
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book.kubebuilder.io/beyond_basics/generating_crd.html
@@ -48,6 +78,8 @@ type ApicuritoStatus struct {
 // +kubebuilder:object:root=true
 // +kubebuilder:storageversion
 // +kubebuilder:resource:path=apicuritoes,scope=Namespaced
+// +kubebuilder:printcolumn:name="Phase",description="The apicurito phase",type=string,JSONPath=`.status.phase`
+// +kubebuilder:printcolumn:name="Version",description="The apicurito version",type=string,JSONPath=`.status.version`
 // +operator-sdk:csv:customresourcedefinitions:displayName="Apicurito"
 // +operator-sdk:csv:customresourcedefinitions:resources={{ServiceAccount,v1},{ClusterRole,rbac.authorization.k8s.io/v1},{Role,rbac.authorization.k8s.io/v1},{Deployment,apps/v1}}
 type Apicurito struct {

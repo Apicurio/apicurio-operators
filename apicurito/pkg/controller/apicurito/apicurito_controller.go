@@ -36,6 +36,7 @@ import (
 
 	"github.com/apicurio/apicurio-operators/apicurito/pkg/resources"
 
+	pkg "github.com/apicurio/apicurio-operators/apicurito/pkg"
 	api "github.com/apicurio/apicurio-operators/apicurito/pkg/apis/apicur/v1alpha1"
 
 	"github.com/apicurio/apicurio-operators/apicurito/pkg/configuration"
@@ -144,9 +145,14 @@ func (r *ReconcileApicurito) Reconcile(ctx context.Context, request reconcile.Re
 		return reconcile.Result{}, err
 	}
 
+	if apicurito.Status.Phase == api.ApicuritoPhaseMissing {
+		r.updateStatus(ctx, apicurito, api.ApicuritoPhaseStarting, reqLogger)
+	}
+
 	c := &configuration.Config{}
 	if err = c.Config(apicurito); err != nil {
 		reqLogger.Error(err, "failed to generate configuration")
+		r.updateStatus(ctx, apicurito, api.ApicuritoPhaseInstallError, reqLogger)
 		return reconcile.Result{
 			Requeue:      true,
 			RequeueAfter: 10 * time.Second,
@@ -160,6 +166,10 @@ func (r *ReconcileApicurito) Reconcile(ctx context.Context, request reconcile.Re
 		Logger:    reqLogger,
 	}
 
+	if apicurito.Status.Phase == api.ApicuritoPhaseStarting || apicurito.Status.Phase == api.ApicuritoPhaseInstallError {
+		r.updateStatus(ctx, apicurito, api.ApicuritoPhaseInstalling, reqLogger)
+	}
+
 	// Fetch routes resources and apply them before the rest
 	// This is needed because ConfigMaps require the routes to be present and should run only once
 	// at startup
@@ -170,6 +180,7 @@ func (r *ReconcileApicurito) Reconcile(ctx context.Context, request reconcile.Re
 		err = r.applyResources(apicurito, routes, reqLogger)
 		if err != nil {
 			reqLogger.Info("Apicurito CR resource changed in the meantime, requeue and rerun in 10 seconds", "err", err)
+			r.updateStatus(ctx, apicurito, api.ApicuritoPhaseInstallError, reqLogger)
 			return reconcile.Result{
 				Requeue:      true,
 				RequeueAfter: 10 * time.Second,
@@ -185,6 +196,7 @@ func (r *ReconcileApicurito) Reconcile(ctx context.Context, request reconcile.Re
 	res, err := rs.Generate()
 	if err != nil {
 		reqLogger.Error(err, "failed to generate resources")
+		r.updateStatus(ctx, apicurito, api.ApicuritoPhaseInstallError, reqLogger)
 		return reconcile.Result{
 			Requeue:      true,
 			RequeueAfter: 10 * time.Second,
@@ -193,16 +205,30 @@ func (r *ReconcileApicurito) Reconcile(ctx context.Context, request reconcile.Re
 	err = r.applyResources(apicurito, res, reqLogger)
 	if err != nil {
 		reqLogger.Info("Apicurito CR changed in the meantime, requeue and rerun in 10 seconds", "err", err)
+		r.updateStatus(ctx, apicurito, api.ApicuritoPhaseInstallError, reqLogger)
 		return reconcile.Result{
 			Requeue:      true,
 			RequeueAfter: 10 * time.Second,
 		}, err
 	}
 
+	r.updateStatus(ctx, apicurito, api.ApicuritoPhaseInstalled, reqLogger)
+
 	return reconcile.Result{
 		Requeue:      true,
 		RequeueAfter: 20 * time.Second,
 	}, nil
+}
+
+func (r *ReconcileApicurito) updateStatus(ctx context.Context, apicurito *api.Apicurito, phase api.ApicuritoPhase, logger logr.Logger) {
+	target := apicurito.DeepCopy()
+	target.Status.Phase = phase
+	target.Status.Version = pkg.Version
+	err := r.client.Status().Update(ctx, target)
+	time.Sleep(3 * time.Second)
+	if err != nil {
+		logger.Info("Failed to update apicurito status", "err", err)
+	}
 }
 
 func (r *ReconcileApicurito) applyResources(apicurito *api.Apicurito, res []client.Object, logger logr.Logger) (err error) {
