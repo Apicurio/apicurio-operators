@@ -25,12 +25,13 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// Options options parameters for command
 type Options struct {
 	Context context.Context
 	Command *cobra.Command
 }
 
-// Creates new Apicurito command
+// NewApicuritoCommand Creates new Apicurito command
 func NewApicuritoCommand(ctx context.Context) (*cobra.Command, error) {
 	options := Options{
 		Context: ctx,
@@ -49,7 +50,6 @@ func NewApicuritoCommand(ctx context.Context) (*cobra.Command, error) {
 	cmd.PersistentFlags().AddGoFlag(&f)
 
 	cmd.AddCommand(newRunCommand(&options))
-	cmd.AddCommand(newOlmCommand(&options))
 	return &cmd, nil
 }
 
