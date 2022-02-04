@@ -34,8 +34,7 @@ lint:
 
 .PHONY: build
 build:
-	IMAGE=$(IMAGE) TAG=$(TAG) VERSION=$(VERSION) ./scripts/go-build.sh
-
+	IMAGE=$(IMAGE) TAG=$(TAG) VERSION=$(VERSION) BUILD_TIME=$(BUILD_TIME) ./scripts/go-build.sh
 
 .PHONY: clean
 clean:

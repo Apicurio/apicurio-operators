@@ -24,6 +24,7 @@ NAMESPACE := $(shell ./script/namespace.sh)
 PACKAGE := apicurito
 DOMAIN := apicur.io
 BUNDLE_DIR := bundle
+CATALOG := catalog
 PKG := ../pkg
 CRD := crd/bases
 MANAGER := manager
@@ -32,6 +33,7 @@ RBAC := rbac
 
 CSV_SUPPORT := Apicurito
 CSV_DISPLAY_NAME := Apicurito
+CSV_NAME := $(PACKAGE).v$(VERSION)
 CSV_REPLACES := $(PACKAGE)operator.v$(PREVIOUS_VERSION)
 CSV_FILENAME := $(PACKAGE).clusterserviceversion.yaml
 CSV_PATH := $(MANIFESTS)/bases/$(CSV_FILENAME)
@@ -152,6 +154,24 @@ else
 KUSTOMIZE=$(shell which kustomize)
 endif
 
+opm:
+ifeq (, $(shell which opm))
+	@{ \
+	set -e ;\
+	OPM_GEN_TMP_DIR=$$(mktemp -d) ;\
+	cd $$OPM_GEN_TMP_DIR ;\
+	go mod init tmp ;\
+	go get \
+		-ldflags '-w -extldflags "-static"' -tags "json1" \
+		-ldflags "-X '$(OPM_PKG)/cmd/opm/version.opmVersion=$(OPM_VERSION)' -X '$(OPM_PKG)/cmd/opm/version.buildDate=$(BUILD_TIME)'" \
+		$(OPM_PKG)/cmd/opm@$(OPM_VERSION) ;\
+	rm -rf $$OPM_GEN_TMP_DIR ;\
+	}
+OPM=$(GOBIN)/opm
+else
+OPM=$(shell which opm)
+endif
+
 operator-sdk:
 ifeq (, $(shell which operator-sdk))
 	@{ \
@@ -195,7 +215,7 @@ pre-bundle:
 	@find $(MANIFESTS)/bases -type f \( -name "*.clusterserviceversion.yaml" ! -name $(CSV_FILENAME) \) -execdir mv '{}' $(CSV_FILENAME) ';'
 	@sed -i 's~^    containerImage: .*~    containerImage: $(IMAGE):$(TAG)~' $(CSV_PATH)
 	@sed -i 's/^    support: .*/    support: $(CSV_SUPPORT)/' $(CSV_PATH)
-	@sed -i 's/^  name: .*.\(v.*\)/  name: $(PACKAGE).v$(VERSION)/' $(CSV_PATH)
+	@sed -i 's/^  name: .*.\(v.*\)/  name: $(CSV_NAME)/' $(CSV_PATH)
 	@sed -i 's/^      displayName: .*/      displayName: $(CSV_DISPLAY_NAME)/' $(CSV_PATH)
 	@sed -i 's/^  replaces: .*/  replaces: $(CSV_REPLACES)/' $(CSV_PATH)
 	@sed -i 's/^  version: .*/  version: $(VERSION)/' $(CSV_PATH)
@@ -229,6 +249,12 @@ bundle: generate-crds kustomize pre-bundle
 .PHONY: bundle-build
 bundle-build: bundle
 	cd bundle && docker build -f Dockerfile -t $(BUNDLE_IMG) .
+
+.PHONY: catalog
+catalog: opm
+	SRC_CATALOG=$(SRC_CATALOG) CATALOG_DIR=$(CATALOG) \
+	OPM=$(OPM) BUNDLE_IMAGE=$(BUNDLE_IMG) CSV_NAME=$(CSV_NAME) \
+	CSV_REPLACES=$(CSV_REPLACES) CHANNEL=$(DEFAULT_CHANNEL) ./script/build-catalog.sh
 
 clean:
 	find . -name "*.gen.*" -delete

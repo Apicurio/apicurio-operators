@@ -15,10 +15,10 @@ if [ -z "${VERSION}" ]; then
   exit 1
 fi
 
-#
-# Timestamp for the building of the operator
-#
-BUILD_TIME=$(date +%Y-%m-%dT%H:%M:%S%z)
+if [ -z "${BUILD_TIME}" ]; then
+  echo "Error: BUILD_TIME env var not defined"
+  exit 1
+fi
 
 export GO111MODULE=on
 go mod vendor

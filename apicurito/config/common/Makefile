@@ -29,6 +29,16 @@ CONTROLLER_GEN_VERSION := v0.4.1
 OPERATOR_SDK_VERSION := v1.14.0
 KUSTOMIZE_VERSION := v4.1.2
 
+OPM_VERSION := v1.19.5
+OPM_PKG := github.com/operator-framework/operator-registry
+
+SRC_CATALOG := quay.io/openshift-community-operators/catalog_tmp:v4.11
+
+#
+# Timestamp for the building of the operator
+#
+BUILD_TIME := $(shell date +%Y-%m-%dT%H:%M:%S%z)
+
 #
 # Make Options
 #
