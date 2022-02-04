@@ -19,15 +19,14 @@ package resources
 import (
 	"fmt"
 
-	"github.com/RHsyseng/operator-utils/pkg/resource"
-
-	"github.com/apicurio/apicurio-operators/apicurito/pkg/apis/apicur/v1alpha1"
+	api "github.com/apicurio/apicurio-operators/apicurito/pkg/apis/apicur/v1alpha1"
 	routev1 "github.com/openshift/api/route/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-func generatorRoute(a *v1alpha1.Apicurito) (r resource.KubernetesResource) {
+func generatorRoute(a *api.Apicurito) (r client.Object) {
 
 	r = &routev1.Route{
 		TypeMeta: metav1.TypeMeta{
@@ -40,8 +39,8 @@ func generatorRoute(a *v1alpha1.Apicurito) (r resource.KubernetesResource) {
 			Labels:    labels,
 			OwnerReferences: []metav1.OwnerReference{
 				*metav1.NewControllerRef(a, schema.GroupVersionKind{
-					Group:   v1alpha1.SchemeGroupVersion.Group,
-					Version: v1alpha1.SchemeGroupVersion.Version,
+					Group:   api.SchemeGroupVersion.Group,
+					Version: api.SchemeGroupVersion.Version,
 					Kind:    a.Kind,
 				}),
 			},
@@ -60,7 +59,7 @@ func generatorRoute(a *v1alpha1.Apicurito) (r resource.KubernetesResource) {
 	return
 }
 
-func apicuritoRoute(a *v1alpha1.Apicurito) (r resource.KubernetesResource) {
+func apicuritoRoute(a *api.Apicurito) (r client.Object) {
 
 	r = &routev1.Route{
 		TypeMeta: metav1.TypeMeta{
@@ -73,8 +72,8 @@ func apicuritoRoute(a *v1alpha1.Apicurito) (r resource.KubernetesResource) {
 			Labels:    labels,
 			OwnerReferences: []metav1.OwnerReference{
 				*metav1.NewControllerRef(a, schema.GroupVersionKind{
-					Group:   v1alpha1.SchemeGroupVersion.Group,
-					Version: v1alpha1.SchemeGroupVersion.Version,
+					Group:   api.SchemeGroupVersion.Group,
+					Version: api.SchemeGroupVersion.Version,
 					Kind:    a.Kind,
 				}),
 			},
@@ -92,10 +91,10 @@ func apicuritoRoute(a *v1alpha1.Apicurito) (r resource.KubernetesResource) {
 	return
 }
 
-func GetGeneratorRouteName(a *v1alpha1.Apicurito) string {
+func GetGeneratorRouteName(a *api.Apicurito) string {
 	return fmt.Sprintf("%s-%s", a.Name, "generator")
 }
 
-func GetUIRouteName(a *v1alpha1.Apicurito) string {
+func GetUIRouteName(a *api.Apicurito) string {
 	return fmt.Sprintf("%s-%s", a.Name, "ui")
 }

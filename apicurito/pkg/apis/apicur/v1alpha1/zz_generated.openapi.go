@@ -23,8 +23,8 @@ limitations under the License.
 package v1alpha1
 
 import (
-	spec "github.com/go-openapi/spec"
 	common "k8s.io/kube-openapi/pkg/common"
+	spec "k8s.io/kube-openapi/pkg/validation/spec"
 )
 
 func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenAPIDefinition {
@@ -58,17 +58,20 @@ func schema_pkg_apis_apicur_v1alpha1_Apicurito(ref common.ReferenceCallback) com
 					},
 					"metadata": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"),
+							Default: map[string]interface{}{},
+							Ref:     ref("k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"),
 						},
 					},
 					"spec": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("./pkg/apis/apicur/v1alpha1.ApicuritoSpec"),
+							Default: map[string]interface{}{},
+							Ref:     ref("./pkg/apis/apicur/v1alpha1.ApicuritoSpec"),
 						},
 					},
 					"status": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("./pkg/apis/apicur/v1alpha1.ApicuritoStatus"),
+							Default: map[string]interface{}{},
+							Ref:     ref("./pkg/apis/apicur/v1alpha1.ApicuritoStatus"),
 						},
 					},
 				},
@@ -89,6 +92,7 @@ func schema_pkg_apis_apicur_v1alpha1_ApicuritoSpec(ref common.ReferenceCallback)
 					"size": {
 						SchemaProps: spec.SchemaProps{
 							Description: "INSERT ADDITIONAL SPEC FIELDS - desired state of cluster Important: Run \"operator-sdk generate k8s\" to regenerate code after modifying this file Add custom validation using kubebuilder tags: https://book.kubebuilder.io/beyond_basics/generating_crd.html",
+							Default:     0,
 							Type:        []string{"integer"},
 							Format:      "int32",
 						},
@@ -106,6 +110,22 @@ func schema_pkg_apis_apicur_v1alpha1_ApicuritoStatus(ref common.ReferenceCallbac
 			SchemaProps: spec.SchemaProps{
 				Description: "ApicuritoStatus defines the observed state of Apicurito",
 				Type:        []string{"object"},
+				Properties: map[string]spec.Schema{
+					"phase": {
+						SchemaProps: spec.SchemaProps{
+							Description: "The phase the operator has reached, eg. INSTALLED, STARTING",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"version": {
+						SchemaProps: spec.SchemaProps{
+							Description: "The currently installed version of Apicurito",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+				},
 			},
 		},
 	}

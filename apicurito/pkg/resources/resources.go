@@ -17,7 +17,6 @@
 package resources
 
 import (
-	"github.com/RHsyseng/operator-utils/pkg/resource"
 	"github.com/go-logr/logr"
 
 	"github.com/apicurio/apicurio-operators/apicurito/pkg/apis/apicur/v1alpha1"
@@ -33,20 +32,20 @@ type Resource struct {
 }
 
 type Generator interface {
-	Generate() (rs []resource.KubernetesResource, err error)
-	Routes() (rs []resource.KubernetesResource)
+	Generate() (rs []client.Object, err error)
+	Routes() (rs []client.Object)
 }
 
-func (r Resource) Routes() (rs []resource.KubernetesResource) {
-	rs = []resource.KubernetesResource{}
+func (r Resource) Routes() (rs []client.Object) {
+	rs = []client.Object{}
 	rs = append(rs, apicuritoRoute(r.Apicurito))
 	rs = append(rs, generatorRoute(r.Apicurito))
 
 	return
 }
 
-func (r Resource) Generate() (rs []resource.KubernetesResource, err error) {
-	rs = []resource.KubernetesResource{}
+func (r Resource) Generate() (rs []client.Object, err error) {
+	rs = []client.Object{}
 
 	c, err := apicuritoConfig(r.Client, r.Apicurito)
 	if err != nil {

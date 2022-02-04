@@ -31,13 +31,13 @@ import (
 	"github.com/RHsyseng/operator-utils/pkg/resource/write"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/RHsyseng/operator-utils/pkg/resource"
 	routev1 "github.com/openshift/api/route/v1"
 	corev1 "k8s.io/api/core/v1"
 
 	"github.com/apicurio/apicurio-operators/apicurito/pkg/resources"
 
-	"github.com/apicurio/apicurio-operators/apicurito/pkg/apis/apicur/v1alpha1"
+	pkg "github.com/apicurio/apicurio-operators/apicurito/pkg"
+	api "github.com/apicurio/apicurio-operators/apicurito/pkg/apis/apicur/v1alpha1"
 
 	"github.com/apicurio/apicurio-operators/apicurito/pkg/configuration"
 
@@ -84,7 +84,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	}
 
 	// Watch for changes to primary resource Apicurito
-	err = c.Watch(&source.Kind{Type: &v1alpha1.Apicurito{}}, &handler.EnqueueRequestForObject{})
+	err = c.Watch(&source.Kind{Type: &api.Apicurito{}}, &handler.EnqueueRequestForObject{})
 	if err != nil {
 		return err
 	}
@@ -93,7 +93,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	// Watch for changes to secondary resource Pods and requeue the owner Apicurito
 	err = c.Watch(&source.Kind{Type: &appsv1.Deployment{}}, &handler.EnqueueRequestForOwner{
 		IsController: true,
-		OwnerType:    &v1alpha1.Apicurito{},
+		OwnerType:    &api.Apicurito{},
 	})
 	if err != nil {
 		return err
@@ -117,13 +117,13 @@ type ReconcileApicurito struct {
 // Note:
 // The Controller will requeue the Request to be processed again if the returned error is non-nil or
 // Result.Requeue is true, otherwise upon completion it will remove the work from the queue.
-func (r *ReconcileApicurito) Reconcile(request reconcile.Request) (reconcile.Result, error) {
+func (r *ReconcileApicurito) Reconcile(ctx context.Context, request reconcile.Request) (reconcile.Result, error) {
 	reqLogger := log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
 	reqLogger.Info("Reconciling Apicurito.")
 
 	// Fetch the Apicurito instance
-	apicurito := &v1alpha1.Apicurito{}
-	err := r.client.Get(context.TODO(), request.NamespacedName, apicurito)
+	apicurito := &api.Apicurito{}
+	err := r.client.Get(ctx, request.NamespacedName, apicurito)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			// Request object not fd, could have been deleted after reconcile request.
@@ -145,9 +145,14 @@ func (r *ReconcileApicurito) Reconcile(request reconcile.Request) (reconcile.Res
 		return reconcile.Result{}, err
 	}
 
+	if apicurito.Status.Phase == api.ApicuritoPhaseMissing {
+		r.updateStatus(ctx, apicurito, api.ApicuritoPhaseStarting, reqLogger)
+	}
+
 	c := &configuration.Config{}
 	if err = c.Config(apicurito); err != nil {
 		reqLogger.Error(err, "failed to generate configuration")
+		r.updateStatus(ctx, apicurito, api.ApicuritoPhaseInstallError, reqLogger)
 		return reconcile.Result{
 			Requeue:      true,
 			RequeueAfter: 10 * time.Second,
@@ -161,16 +166,21 @@ func (r *ReconcileApicurito) Reconcile(request reconcile.Request) (reconcile.Res
 		Logger:    reqLogger,
 	}
 
+	if apicurito.Status.Phase == api.ApicuritoPhaseStarting || apicurito.Status.Phase == api.ApicuritoPhaseInstallError {
+		r.updateStatus(ctx, apicurito, api.ApicuritoPhaseInstalling, reqLogger)
+	}
+
 	// Fetch routes resources and apply them before the rest
 	// This is needed because ConfigMaps require the routes to be present and should run only once
 	// at startup
 	route := &routev1.Route{}
-	err = r.client.Get(context.TODO(), types.NamespacedName{Name: fmt.Sprintf("%s-%s", apicurito.Name, "generator"), Namespace: apicurito.Namespace}, route)
+	err = r.client.Get(ctx, types.NamespacedName{Name: fmt.Sprintf("%s-%s", apicurito.Name, "generator"), Namespace: apicurito.Namespace}, route)
 	if err != nil && errors.IsNotFound(err) {
 		routes := rs.Routes()
 		err = r.applyResources(apicurito, routes, reqLogger)
 		if err != nil {
 			reqLogger.Info("Apicurito CR resource changed in the meantime, requeue and rerun in 10 seconds", "err", err)
+			r.updateStatus(ctx, apicurito, api.ApicuritoPhaseInstallError, reqLogger)
 			return reconcile.Result{
 				Requeue:      true,
 				RequeueAfter: 10 * time.Second,
@@ -186,6 +196,7 @@ func (r *ReconcileApicurito) Reconcile(request reconcile.Request) (reconcile.Res
 	res, err := rs.Generate()
 	if err != nil {
 		reqLogger.Error(err, "failed to generate resources")
+		r.updateStatus(ctx, apicurito, api.ApicuritoPhaseInstallError, reqLogger)
 		return reconcile.Result{
 			Requeue:      true,
 			RequeueAfter: 10 * time.Second,
@@ -194,11 +205,14 @@ func (r *ReconcileApicurito) Reconcile(request reconcile.Request) (reconcile.Res
 	err = r.applyResources(apicurito, res, reqLogger)
 	if err != nil {
 		reqLogger.Info("Apicurito CR changed in the meantime, requeue and rerun in 10 seconds", "err", err)
+		r.updateStatus(ctx, apicurito, api.ApicuritoPhaseInstallError, reqLogger)
 		return reconcile.Result{
 			Requeue:      true,
 			RequeueAfter: 10 * time.Second,
 		}, err
 	}
+
+	r.updateStatus(ctx, apicurito, api.ApicuritoPhaseInstalled, reqLogger)
 
 	return reconcile.Result{
 		Requeue:      true,
@@ -206,7 +220,18 @@ func (r *ReconcileApicurito) Reconcile(request reconcile.Request) (reconcile.Res
 	}, nil
 }
 
-func (r *ReconcileApicurito) applyResources(apicurito *v1alpha1.Apicurito, res []resource.KubernetesResource, logger logr.Logger) (err error) {
+func (r *ReconcileApicurito) updateStatus(ctx context.Context, apicurito *api.Apicurito, phase api.ApicuritoPhase, logger logr.Logger) {
+	target := apicurito.DeepCopy()
+	target.Status.Phase = phase
+	target.Status.Version = pkg.Version
+	err := r.client.Status().Update(ctx, target)
+	time.Sleep(3 * time.Second)
+	if err != nil {
+		logger.Info("Failed to update apicurito status", "err", err)
+	}
+}
+
+func (r *ReconcileApicurito) applyResources(apicurito *api.Apicurito, res []client.Object, logger logr.Logger) (err error) {
 	deployed, err := getDeployedResources(apicurito, r.client)
 
 	requested := compare.NewMapBuilder().Add(res...).ResourceMap()
@@ -241,7 +266,7 @@ func (r *ReconcileApicurito) applyResources(apicurito *v1alpha1.Apicurito, res [
 	return
 }
 
-func getDeployedResources(cr *v1alpha1.Apicurito, client client.Client) (map[reflect.Type][]resource.KubernetesResource, error) {
+func getDeployedResources(cr *api.Apicurito, client client.Client) (map[reflect.Type][]client.Object, error) {
 	var log = logf.Log.WithName("getDeployedResources")
 
 	reader := read.New(client).WithNamespace(cr.Namespace).WithOwnerObject(cr)
@@ -265,7 +290,7 @@ func getComparator() compare.MapComparator {
 	resourceComparator := compare.DefaultComparator()
 
 	configMapType := reflect.TypeOf(corev1.ConfigMap{})
-	resourceComparator.SetComparator(configMapType, func(deployed resource.KubernetesResource, requested resource.KubernetesResource) bool {
+	resourceComparator.SetComparator(configMapType, func(deployed client.Object, requested client.Object) bool {
 		configMap1 := deployed.(*corev1.ConfigMap)
 		configMap2 := requested.(*corev1.ConfigMap)
 		var pairs [][2]interface{}

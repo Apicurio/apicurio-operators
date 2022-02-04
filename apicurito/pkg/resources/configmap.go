@@ -20,8 +20,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/RHsyseng/operator-utils/pkg/resource"
-
 	routev1 "github.com/openshift/api/route/v1"
 
 	"k8s.io/apimachinery/pkg/types"
@@ -33,7 +31,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
-func apicuritoConfig(client client.Client, a *v1alpha1.Apicurito) (c resource.KubernetesResource, err error) {
+func apicuritoConfig(client client.Client, a *v1alpha1.Apicurito) (c client.Object, err error) {
 	c = &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: fmt.Sprintf("%s-%s", a.Name, "ui"),

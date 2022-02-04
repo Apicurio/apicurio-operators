@@ -1,9 +1,4 @@
 #
-# Make Options
-#
-MK_OPTIONS := -s
-
-#
 # Allows for resources to be loaded from outside the root location of
 # the kustomize config file. Ensures that resource don't need to be
 # copied around the file system.
@@ -26,7 +21,6 @@ KUBE_USER ?= developer
 LEGACY ?= false
 
 NAMESPACE := $(shell ./script/namespace.sh)
-DEFAULT_CHANNEL := $(CHANNELS)
 PACKAGE := apicurito
 DOMAIN := apicur.io
 BUNDLE_DIR := bundle

@@ -19,20 +19,19 @@ package resources
 import (
 	"fmt"
 
-	"github.com/RHsyseng/operator-utils/pkg/resource"
-
 	"k8s.io/apimachinery/pkg/runtime/schema"
 
-	"github.com/apicurio/apicurio-operators/apicurito/pkg/apis/apicur/v1alpha1"
+	api "github.com/apicurio/apicurio-operators/apicurito/pkg/apis/apicur/v1alpha1"
 	"github.com/apicurio/apicurio-operators/apicurito/pkg/configuration"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 // Creates and returns a apicurito Deployment object
-func apicuritoDeployment(c *configuration.Config, a *v1alpha1.Apicurito) (dep resource.KubernetesResource) {
+func apicuritoDeployment(c *configuration.Config, a *api.Apicurito) (dep client.Object) {
 	// Define a new deployment
 	var dm int32 = 420
 	name := fmt.Sprintf("%s-%s", a.Name, "ui")
@@ -47,8 +46,8 @@ func apicuritoDeployment(c *configuration.Config, a *v1alpha1.Apicurito) (dep re
 			Namespace: a.Namespace,
 			OwnerReferences: []metav1.OwnerReference{
 				*metav1.NewControllerRef(a, schema.GroupVersionKind{
-					Group:   v1alpha1.SchemeGroupVersion.Group,
-					Version: v1alpha1.SchemeGroupVersion.Version,
+					Group:   api.SchemeGroupVersion.Group,
+					Version: api.SchemeGroupVersion.Version,
 					Kind:    a.Kind,
 				}),
 			},
@@ -122,7 +121,7 @@ func apicuritoDeployment(c *configuration.Config, a *v1alpha1.Apicurito) (dep re
 }
 
 // Creates and returns a generator Deployment object
-func generatorDeployment(c *configuration.Config, a *v1alpha1.Apicurito) (dep resource.KubernetesResource) {
+func generatorDeployment(c *configuration.Config, a *api.Apicurito) (dep client.Object) {
 	// Define a new deployment
 	name := fmt.Sprintf("%s-%s", a.Name, "generator")
 	deployLabels := labelComponent(name)
@@ -136,8 +135,8 @@ func generatorDeployment(c *configuration.Config, a *v1alpha1.Apicurito) (dep re
 			Namespace: a.Namespace,
 			OwnerReferences: []metav1.OwnerReference{
 				*metav1.NewControllerRef(a, schema.GroupVersionKind{
-					Group:   v1alpha1.SchemeGroupVersion.Group,
-					Version: v1alpha1.SchemeGroupVersion.Version,
+					Group:   api.SchemeGroupVersion.Group,
+					Version: api.SchemeGroupVersion.Version,
 					Kind:    a.Kind,
 				}),
 			},

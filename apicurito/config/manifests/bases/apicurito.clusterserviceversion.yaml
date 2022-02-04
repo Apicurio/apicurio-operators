@@ -35,6 +35,21 @@ spec:
       - kind: ServiceAccount
         name: ""
         version: v1
+      specDescriptors:
+      - description: The number of pods to scale
+        displayName: Size
+        path: size
+      statusDescriptors:
+      - description: The phase the operator has reached, eg. INSTALLED, STARTING
+        displayName: Phase
+        path: phase
+        x-descriptors:
+        - urn:alm:descriptor:io.kubernetes.phase
+      - description: The currently installed version of Apicurito
+        displayName: Version
+        path: version
+        x-descriptors:
+        - urn:alm:descriptor:text
       version: v1alpha1
   description: |+
     The API Designer is a small/minimal version of Apicurio, a standalone API design studio that can be used to create new or edit existing API designs (using the OpenAPI specification).

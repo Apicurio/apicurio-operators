@@ -13,14 +13,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-VERSION ?= 1.0.1
-PREVIOUS_VERSION := 0.1.0
+DEFAULT_VERSION := 1.0.2
+PREVIOUS_VERSION := 1.0.1
+VERSION ?= $(DEFAULT_VERSION)
 DEFAULT_IMAGE ?=  quay.io/apicurio/apicurito-operator
 IMAGE ?= $(DEFAULT_IMAGE)
-DEFAULT_TAG := v$(VERSION)
+DEFAULT_TAG := $(VERSION)
 TAG ?= $(DEFAULT_TAG)
-CHANNELS := 1.0.x
+DEFAULT_CHANNEL := latest
+CHANNEL ?= $(DEFAULT_CHANNEL)
+DEFAULT_CHANNELS := $(DEFAULT_CHANNEL),candidate,stable,$(shell v=$(VERSION) && echo "$${v%\.[0-9]}.x")
+CHANNELS ?= $(DEFAULT_CHANNELS)
 
 CONTROLLER_GEN_VERSION := v0.4.1
-OPERATOR_SDK_VERSION := v1.5.0
+OPERATOR_SDK_VERSION := v1.14.0
 KUSTOMIZE_VERSION := v4.1.2
+
+#
+# Make Options
+#
+MK_OPTIONS := -s

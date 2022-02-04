@@ -3,41 +3,45 @@ module github.com/apicurio/apicurio-operators/apicurito
 go 1.13
 
 require (
-	github.com/RHsyseng/operator-utils v0.0.0-20200506183821-e3b4a2ba9c30
-	github.com/blang/semver v3.5.1+incompatible
-	github.com/coreos/prometheus-operator v0.35.1
+	github.com/RHsyseng/operator-utils v0.0.0-00010101000000-000000000000
+	github.com/blang/semver v3.5.1+incompatible // indirect
+	github.com/coreos/prometheus-operator v0.38.1-0.20200424145508-7e176fda06cc // indirect
 	github.com/ghodss/yaml v1.0.1-0.20190212211648-25d852aebe32
-	github.com/go-logr/logr v0.1.0
-	github.com/go-openapi/spec v0.19.6
+	github.com/go-logr/logr v0.4.0
+	github.com/go-openapi/spec v0.19.9 // indirect
 	github.com/gobuffalo/packr/v2 v2.7.1
-	github.com/heroku/docker-registry-client v0.0.0-20190909225348-afc9e1acc3d5
-	github.com/imdario/mergo v0.3.8
+	github.com/heroku/docker-registry-client v0.0.0-20190909225348-afc9e1acc3d5 // indirect
+	github.com/imdario/mergo v0.3.12
 	github.com/openshift/api v3.9.1-0.20190924102528-32369d4db2ad+incompatible
-	github.com/operator-framework/operator-lifecycle-manager v0.0.0-20191115003340-16619cd27fa5
-	github.com/operator-framework/operator-sdk v0.15.0
-	github.com/prometheus/client_golang v1.2.1
-	github.com/rogpeppe/go-internal v1.5.0 // indirect
-	github.com/spf13/cobra v0.0.5
-	github.com/stretchr/testify v1.4.0
-	github.com/tidwall/gjson v1.6.0 // indirect
-	github.com/tidwall/sjson v1.0.4 // indirect
-	gopkg.in/yaml.v2 v2.2.8
-	k8s.io/api v0.17.2
-	k8s.io/apiextensions-apiserver v0.17.0 // indirect
-	k8s.io/apimachinery v0.17.2
-	k8s.io/kube-openapi v0.0.0-20191107075043-30be4d16710a
-	sigs.k8s.io/controller-runtime v0.4.0
+	github.com/operator-framework/operator-lifecycle-manager v0.0.0-20191115003340-16619cd27fa5 // indirect
+	github.com/operator-framework/operator-sdk v0.19.4
+	github.com/prometheus/client_golang v1.11.0
+	github.com/spf13/cobra v1.1.1
+	github.com/stretchr/testify v1.7.0
+	gopkg.in/yaml.v2 v2.4.0 // indirect
+	k8s.io/api v0.22.1
+	k8s.io/apimachinery v0.22.1
+	k8s.io/kube-openapi v0.0.0-20210421082810-95288971da7e
+	sigs.k8s.io/controller-runtime v0.10.0
 
 )
 
-// Pinned to kubernetes-1.16.2, this is a requirement for operator-sdk 0.14.0
+replace sigs.k8s.io/controller-runtime => sigs.k8s.io/controller-runtime v0.10.0
+
 replace (
-	k8s.io/api => k8s.io/api v0.0.0-20191016110408-35e52d86657a
-	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.0.0-20191016113550-5357c4baaf65
-	k8s.io/apimachinery => k8s.io/apimachinery v0.0.0-20191004115801-a2eda9f80ab8
+	// OpenShift release-4.11
+	github.com/openshift/api => github.com/openshift/api v0.0.0-20200930075302-db52bc4ef99f
+	github.com/openshift/client-go => github.com/openshift/client-go v0.0.0-20200929181438-91d71ef2122c
+	k8s.io/api => k8s.io/api v0.22.1
+	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.21.0
+	k8s.io/apimachinery => k8s.io/apimachinery v0.22.1
+	k8s.io/client-go => k8s.io/client-go v0.22.1
+)
+
+replace (
+	github.com/RHsyseng/operator-utils => github.com/RHsyseng/operator-utils v1.4.7
 	k8s.io/apiserver => k8s.io/apiserver v0.0.0-20191016112112-5190913f932d
 	k8s.io/cli-runtime => k8s.io/cli-runtime v0.0.0-20191016114015-74ad18325ed5
-	k8s.io/client-go => k8s.io/client-go v0.0.0-20191016111102-bec269661e48
 	k8s.io/cloud-provider => k8s.io/cloud-provider v0.0.0-20191016115326-20453efc2458
 	k8s.io/cluster-bootstrap => k8s.io/cluster-bootstrap v0.0.0-20191016115129-c07a134afb42
 	k8s.io/code-generator => k8s.io/code-generator v0.0.0-20191004115455-8e001e5d1894
@@ -55,15 +59,6 @@ replace (
 	k8s.io/sample-apiserver => k8s.io/sample-apiserver v0.0.0-20191016112829-06bb3c9d77c9
 )
 
-// Required by operator-sdk 0.14.0
-replace (
-	github.com/docker/docker => github.com/moby/moby v0.7.3-0.20190826074503-38ab9da00309 // Required by Helm
-	github.com/prometheus/prometheus => github.com/prometheus/prometheus v0.0.0-20190424153033-d3245f150225
-	k8s.io/helm => k8s.io/helm v2.16.1+incompatible
-)
+replace github.com/operator-framework/operator-sdk => github.com/operator-framework/operator-sdk v0.19.4
 
 replace golang.org/x/text => golang.org/x/text v0.3.3
-
-replace github.com/openshift/api => github.com/openshift/api v0.0.0-20200205145930-e9d93e317dd1
-
-replace github.com/openshift/client-go => github.com/openshift/client-go v0.0.0-20191125132246-f6563a70e19a
