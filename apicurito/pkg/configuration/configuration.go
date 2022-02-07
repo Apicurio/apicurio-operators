@@ -31,9 +31,8 @@ import (
 var ConfigFile string
 
 type Config struct {
-	UiImage                    string
-	GeneratorImage             string
-	SupportedOpenShiftVersions string
+	UiImage        string
+	GeneratorImage string
 }
 
 type ConfigLoader interface {

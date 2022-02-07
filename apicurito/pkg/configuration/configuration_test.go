@@ -37,7 +37,7 @@ func Test_loadFromFile(t *testing.T) {
 		{
 			"When loading a config file, all parameter should match",
 			args{config: "../../build/conf/config_test.yaml"},
-			&Config{UiImage: "apicurio/apicurito-ui:1.1.1", GeneratorImage: "apicurio/fuse-apicurito-generator:latest", SupportedOpenShiftVersions: "v4.5,v4.6"},
+			&Config{UiImage: "apicurio/apicurito-ui:1.2.4", GeneratorImage: "apicurio/fuse-apicurito-generator:latest"},
 			false,
 		},
 	}
