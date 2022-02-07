@@ -254,7 +254,7 @@ bundle-build: bundle
 catalog: opm
 	SRC_CATALOG=$(SRC_CATALOG) CATALOG_DIR=$(CATALOG) \
 	OPM=$(OPM) BUNDLE_IMAGE=$(BUNDLE_IMG) CSV_NAME=$(CSV_NAME) \
-	CSV_REPLACES=$(CSV_REPLACES) CHANNEL=$(DEFAULT_CHANNEL) ./script/build-catalog.sh
+	CSV_REPLACES=$(CSV_REPLACES) CHANNEL=$(DEFAULT_CHANNEL)-$(VERSION) ./script/build-catalog.sh
 
 clean:
 	find . -name "*.gen.*" -delete

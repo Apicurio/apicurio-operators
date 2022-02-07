@@ -13,8 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-DEFAULT_VERSION := 1.0.2
-PREVIOUS_VERSION := 1.0.1
+DEFAULT_VERSION := 1.0.3
+PREVIOUS_VERSION := 1.0.2
 VERSION ?= $(DEFAULT_VERSION)
 DEFAULT_IMAGE ?=  quay.io/apicurio/apicurito-operator
 IMAGE ?= $(DEFAULT_IMAGE)
