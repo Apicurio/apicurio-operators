@@ -4,12 +4,12 @@ KUSTOMIZE_VERSION := v4.1.2
 
 PACKAGE := fuse-apicurito
 
-DEFAULT_VERSION := 7.10.0
-DEFAULT_PREVIOUS_VERSION := 7.9.1
+DEFAULT_VERSION := 7.10.1
+DEFAULT_PREVIOUS_VERSION := 7.10.0
 DEFAULT_TAG := 1.10
 DEFAULT_IMAGE := registry-proxy.engineering.redhat.com/rh-osbs/fuse7-fuse-apicurito-rhel8-operator
 DEFAULT_NAMESPACE := $(shell $(CONFIG_DIR)/script/namespace.sh)
-DEFAULT_CHANNEL := $(PACKAGE)-$(DEFAULT_VERSION:.0=.x)
+DEFAULT_CHANNEL := $(PACKAGE)-$(shell v=$(DEFAULT_VERSION) && echo "$${v%\.[0-9]}.x")
 DEFAULT_CSV := manifests/bases/apicurito.clusterserviceversion.yaml
 BUNDLE_INFIX := manifest
 
@@ -25,7 +25,7 @@ DEBUG ?= false
 KUBE_USER ?= developer
 DEFAULT_IMAGE ?=
 IMAGE ?= $(DEFAULT_IMAGE)
-DEFAULT_TAG := 1.10
+DEFAULT_TAG ?= 1.10
 TAG ?= $(DEFAULT_TAG)
 LEGACY ?= false
 NAMESPACE ?= $(DEFAULT_NAMESPACE)

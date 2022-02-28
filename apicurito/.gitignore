@@ -88,3 +88,5 @@ deploy/operatorsource.yaml
 *.ipr
 *.iws
 
+# bundle
+config/bundle/**
