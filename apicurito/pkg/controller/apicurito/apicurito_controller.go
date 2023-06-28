@@ -234,6 +234,17 @@ func (r *ReconcileApicurito) updateStatus(ctx context.Context, apicurito *api.Ap
 func (r *ReconcileApicurito) applyResources(apicurito *api.Apicurito, res []client.Object, logger logr.Logger) (err error) {
 	deployed, err := getDeployedResources(apicurito, r.client)
 
+	// Normalize deployed Deployments
+	deploymentType := reflect.TypeOf(appsv1.Deployment{})
+	if v, exists := deployed[deploymentType]; exists {
+		for i := range v {
+			for ii := range v[i].(*appsv1.Deployment).Spec.Template.Spec.Containers {
+				v[i].(*appsv1.Deployment).Spec.Template.Spec.Containers[ii].Resources.Limits = resources.Normalize(v[i].(*appsv1.Deployment).Spec.Template.Spec.Containers[ii].Resources.Limits)
+				v[i].(*appsv1.Deployment).Spec.Template.Spec.Containers[ii].Resources.Requests = resources.Normalize(v[i].(*appsv1.Deployment).Spec.Template.Spec.Containers[ii].Resources.Requests)
+			}
+		}
+	}
+
 	requested := compare.NewMapBuilder().Add(res...).ResourceMap()
 	comparator := getComparator()
 	deltas := comparator.Compare(deployed, requested)

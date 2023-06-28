@@ -91,16 +91,30 @@ func schema_pkg_apis_apicur_v1alpha1_ApicuritoSpec(ref common.ReferenceCallback)
 				Properties: map[string]spec.Schema{
 					"size": {
 						SchemaProps: spec.SchemaProps{
-							Description: "INSERT ADDITIONAL SPEC FIELDS - desired state of cluster Important: Run \"operator-sdk generate k8s\" to regenerate code after modifying this file Add custom validation using kubebuilder tags: https://book.kubebuilder.io/beyond_basics/generating_crd.html",
+							Description: "The number of pods to scale",
 							Default:     0,
 							Type:        []string{"integer"},
 							Format:      "int32",
+						},
+					},
+					"resourcesUI": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Resources for the UI pod",
+							Ref:         ref("k8s.io/api/core/v1.ResourceRequirements"),
+						},
+					},
+					"resourcesGenerator": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Resources for the generator pod",
+							Ref:         ref("k8s.io/api/core/v1.ResourceRequirements"),
 						},
 					},
 				},
 				Required: []string{"size"},
 			},
 		},
+		Dependencies: []string{
+			"k8s.io/api/core/v1.ResourceRequirements"},
 	}
 }
 
