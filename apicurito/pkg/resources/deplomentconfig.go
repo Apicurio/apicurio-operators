@@ -18,25 +18,28 @@ package resources
 
 import (
 	"fmt"
-
+	"gopkg.in/inf.v0"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"math/big"
 
 	api "github.com/apicurio/apicurio-operators/apicurito/pkg/apis/apicur/v1alpha1"
 	"github.com/apicurio/apicurio-operators/apicurito/pkg/configuration"
+
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-// Creates and returns a apicurito Deployment object
-func apicuritoDeployment(c *configuration.Config, a *api.Apicurito) (dep client.Object) {
+// Creates and returns an Apicurito Deployment object
+func apicuritoDeployment(c *configuration.Config, a *api.Apicurito) client.Object {
 	// Define a new deployment
 	var dm int32 = 420
 	name := fmt.Sprintf("%s-%s", a.Name, "ui")
 	deployLabels := labelComponent(name)
-	dep = &appsv1.Deployment{
+	deployment := &appsv1.Deployment{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "apps/v1",
 			Kind:       "Deployment",
@@ -98,6 +101,16 @@ func apicuritoDeployment(c *configuration.Config, a *api.Apicurito) (dep client.
 								MountPath: "/html/config",
 							},
 						},
+						Resources: corev1.ResourceRequirements{
+							Requests: Normalize(corev1.ResourceList{
+								corev1.ResourceCPU:    resource.MustParse("500m"),
+								corev1.ResourceMemory: resource.MustParse("64Mi"),
+							}),
+							Limits: Normalize(corev1.ResourceList{
+								corev1.ResourceCPU:    resource.MustParse("1000m"),
+								corev1.ResourceMemory: resource.MustParse("128Mi"),
+							}),
+						},
 					}},
 					Volumes: []corev1.Volume{
 						{
@@ -117,15 +130,24 @@ func apicuritoDeployment(c *configuration.Config, a *api.Apicurito) (dep client.
 		},
 	}
 
-	return
+	if a.Spec.ResourcesUI != nil {
+		if a.Spec.ResourcesUI.Requests != nil {
+			deployment.Spec.Template.Spec.Containers[0].Resources.Requests = Normalize(a.Spec.ResourcesUI.Requests)
+		}
+		if a.Spec.ResourcesUI.Limits != nil {
+			deployment.Spec.Template.Spec.Containers[0].Resources.Limits = Normalize(a.Spec.ResourcesUI.Limits)
+		}
+	}
+
+	return deployment
 }
 
 // Creates and returns a generator Deployment object
-func generatorDeployment(c *configuration.Config, a *api.Apicurito) (dep client.Object) {
+func generatorDeployment(c *configuration.Config, a *api.Apicurito) client.Object {
 	// Define a new deployment
 	name := fmt.Sprintf("%s-%s", a.Name, "generator")
 	deployLabels := labelComponent(name)
-	dep = &appsv1.Deployment{
+	deployment := &appsv1.Deployment{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "apps/v1",
 			Kind:       "Deployment",
@@ -207,11 +229,61 @@ func generatorDeployment(c *configuration.Config, a *api.Apicurito) (dep client.
 									Path:   "/health",
 								}},
 						},
+						Resources: corev1.ResourceRequirements{
+							Requests: Normalize(corev1.ResourceList{
+								corev1.ResourceCPU:    resource.MustParse("500m"),
+								corev1.ResourceMemory: resource.MustParse("256Mi"),
+							}),
+							Limits: Normalize(corev1.ResourceList{
+								corev1.ResourceCPU:    resource.MustParse("1000m"),
+								corev1.ResourceMemory: resource.MustParse("512Mi"),
+							}),
+						},
 					}},
 				},
 			},
 		},
 	}
 
+	if a.Spec.ResourcesGenerator != nil {
+		if a.Spec.ResourcesGenerator.Requests != nil {
+			deployment.Spec.Template.Spec.Containers[0].Resources.Requests = Normalize(a.Spec.ResourcesGenerator.Requests)
+		}
+		if a.Spec.ResourcesGenerator.Limits != nil {
+			deployment.Spec.Template.Spec.Containers[0].Resources.Limits = Normalize(a.Spec.ResourcesGenerator.Limits)
+		}
+	}
+
+	return deployment
+}
+
+// Normalize transforms each resource.Quantity item into a canonical form,
+// so reflect.DeepEquals works correctly.
+func Normalize(in corev1.ResourceList) (out corev1.ResourceList) {
+	out = make(map[corev1.ResourceName]resource.Quantity)
+	for k, v := range in {
+		// Normalize scale
+		dec := *(&v).AsDec()
+
+		unscaled := dec.UnscaledBig()
+		scale := dec.Scale()
+
+		zero := big.NewInt(0)
+		ten := big.NewInt(10)
+
+		for scale > 0 {
+			rem := big.NewInt(0)
+			rem.Mod(unscaled, ten)
+			if rem.Cmp(zero) == 0 {
+				// We can rescale
+				unscaled.Div(unscaled, big.NewInt(10))
+				scale = scale - 1
+			} else {
+				break
+			}
+		}
+
+		out[k] = *resource.NewDecimalQuantity(*inf.NewDecBig(unscaled, scale), v.Format)
+	}
 	return
 }
