@@ -3,5 +3,26 @@ kind: Apicurito
 metadata:
   name: apicurito
 spec:
-  # Add fields here
+  # Add fields here:
+  # `size` field represents the requested number of pods:
   size: 3
+  # `resourcesGenerator` field represents the resources available to each Generator pod.
+  # This field is optional, the values below are the defaults:
+  resourcesGenerator:
+    # Either `limits` or `requests` can be specified, both, or none.
+    limits:
+      cpu: "1"
+      memory: 512Mi
+    requests:
+      cpu: 500m
+      memory: 256Mi
+  # `resourcesUI` field represents the resources available to each UI pod.
+  # This field is optional, the values below are the defaults:
+  resourcesUI:
+    # Either `limits` or `requests` can be specified, both, or none.
+    limits:
+      cpu: "1"
+      memory: 128Mi
+    requests:
+      cpu: 500m
+      memory: 64Mi
