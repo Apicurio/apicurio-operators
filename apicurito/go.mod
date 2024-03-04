@@ -4,7 +4,7 @@ go 1.13
 
 require (
 	github.com/RHsyseng/operator-utils v0.0.0-00010101000000-000000000000
-	github.com/emicklei/go-restful v2.9.6+incompatible // indirect
+	github.com/emicklei/go-restful v2.16.0+incompatible // indirect
 	github.com/ghodss/yaml v1.0.1-0.20190212211648-25d852aebe32
 	github.com/go-logr/logr v0.4.0
 	github.com/gobuffalo/packr/v2 v2.7.1
